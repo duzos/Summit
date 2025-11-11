@@ -35,11 +35,12 @@ jobs:
       - name: Build project
         # adjust the path to your .csproj if needed
         run: dotnet build ./Summit/Summit.csproj -c Release -maxcpucount:1
-
+      
       - name: Publish self-contained Windows EXE
-        # adjust project path and runtime identifier (rid) as needed
         run: |
-          dotnet publish ./Summit/Summit.csproj -c Release -r win-x64 --self-contained true -o publish
+          dotnet publish ./Summit/Summit.csproj -c Release -f net9.0-windows -r win-x64 --self-contained true -o publish
+          Compress-Archive -Path publish\* -DestinationPath game-${{ github.event.inputs.tag_name || github.ref_name }}.zip
+
 
       - name: Create GitHub Release
         id: create_release
