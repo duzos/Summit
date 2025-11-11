@@ -1,13 +1,22 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Summit.Card;
 using SummitKit;
+using SummitKit.Graphics;
+using SummitKit.Input;
+using SummitKit.Physics;
+using System;
+using System.Collections;
+using System.Linq;
 
 namespace Summit
 {
     public class MainGame : Core
     {
-        private Texture2D _test;
+        public static TextureAtlas Atlas { get; private set; }
+        public static Deck MainDeck { get; private set; }
+        public static Hand MainHand { get; private set; }
 
         public MainGame() : base("Summit", 1280, 720, false)
         {
@@ -16,8 +25,6 @@ namespace Summit
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
-
             base.Initialize();
         }
 
@@ -25,7 +32,27 @@ namespace Summit
         {
             base.LoadContent();
 
-            _test = Content.Load<Texture2D>("assets/ace");
+            Atlas = TextureAtlas.FromFile(Content, "assets/atlas-definition.xml");
+            MainDeck = new();
+            MainDeck.Shuffle();
+            MainHand = new()
+            {
+                MaxSize = 5
+            };
+
+            var button = new Button(Atlas.CreateSprite("ace-hearts"), but =>
+            {
+                MainHand.Clear();
+                MainHand.DespawnCards();
+                MainDeck.AddAll(MainHand.Cards);
+                MainDeck.Deal(MainHand);
+                MainHand.SpawnCards();
+            });
+            // bottom right corner
+            button.Scale *= 2F;
+            button.Position = new Vector2(1280 - button.Width - 10, 720 - button.Height - 10);
+
+            Entities.AddEntity(button);
         }
 
         protected override void Update(GameTime gameTime)
@@ -33,21 +60,21 @@ namespace Summit
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
-            // TODO: Add your update logic here
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.AliceBlue);
+            GraphicsDevice.Clear(Color.White);
 
-            SpriteBatch.Begin();
-            MouseState mouse = Mouse.GetState();
-            SpriteBatch.Draw(_test, new Vector2(mouse.X - (_test.Width / 2), mouse.Y - (_test.Height / 2)), Color.White);
-            SpriteBatch.End();
+
+            // Begin the sprite batch to prepare for rendering.
+            SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
             base.Draw(gameTime);
+
+            SpriteBatch.End();
         }
     }
 }

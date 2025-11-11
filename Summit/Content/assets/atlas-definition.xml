@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas>
+	<Texture>assets/atlas</Texture>
+	<Regions>
+		<Region name="ace-clubs" x="0" y="0" width="40" height="60"></Region>
+		<Region name="2-clubs" x="40" y="0" width="40" height="60"></Region>
+		<Region name="3-clubs" x="80" y="0" width="40" height="60"></Region>
+		<Region name="4-clubs" x="120" y="0" width="40" height="60"></Region>
+		<Region name="5-clubs" x="160" y="0" width="40" height="60"></Region>
+		<Region name="6-clubs" x="200" y="0" width="40" height="60"></Region>
+		<Region name="7-clubs" x="240" y="0" width="40" height="60"></Region>
+		<Region name="8-clubs" x="280" y="0" width="40" height="60"></Region>
+		<Region name="9-clubs" x="320" y="0" width="40" height="60"></Region>
+		<Region name="10-clubs" x="360" y="0" width="40" height="60"></Region>
+		<Region name="jack-clubs" x="400" y="0" width="40" height="60"></Region>
+		<Region name="queen-clubs" x="440" y="0" width="40" height="60"></Region>
+		<Region name="king-clubs" x="480" y="0" width="40" height="60"></Region>
+		<Region name="ace-hearts" x="0" y="60" width="40" height="60"></Region>
+		<Region name="2-hearts" x="40" y="60" width="40" height="60"></Region>
+		<Region name="3-hearts" x="80" y="60" width="40" height="60"></Region>
+		<Region name="4-hearts" x="120" y="60" width="40" height="60"></Region>
+		<Region name="5-hearts" x="160" y="60" width="40" height="60"></Region>
+		<Region name="6-hearts" x="200" y="60" width="40" height="60"></Region>
+		<Region name="7-hearts" x="240" y="60" width="40" height="60"></Region>
+		<Region name="8-hearts" x="280" y="60" width="40" height="60"></Region>
+		<Region name="9-hearts" x="320" y="60" width="40" height="60"></Region>
+		<Region name="10-hearts" x="360" y="60" width="40" height="60"></Region>
+		<Region name="jack-hearts" x="400" y="60" width="40" height="60"></Region>
+		<Region name="queen-hearts" x="440" y="60" width="40" height="60"></Region>
+		<Region name="king-hearts" x="480" y="60" width="40" height="60"></Region>
+		<Region name="ace-diamonds" x="0" y="120" width="40" height="60"></Region>
+		<Region name="2-diamonds" x="40" y="120" width="40" height="60"></Region>
+		<Region name="3-diamonds" x="80" y="120" width="40" height="60"></Region>
+		<Region name="4-diamonds" x="120" y="120" width="40" height="60"></Region>
+		<Region name="5-diamonds" x="160" y="120" width="40" height="60"></Region>
+		<Region name="6-diamonds" x="200" y="120" width="40" height="60"></Region>
+		<Region name="7-diamonds" x="240" y="120" width="40" height="60"></Region>
+		<Region name="8-diamonds" x="280" y="120" width="40" height="60"></Region>
+		<Region name="9-diamonds" x="320" y="120" width="40" height="60"></Region>
+		<Region name="10-diamonds" x="360" y="120" width="40" height="60"></Region>
+		<Region name="jack-diamonds" x="400" y="120" width="40" height="60"></Region>
+		<Region name="queen-diamonds" x="440" y="120" width="40" height="60"></Region>
+		<Region name="king-diamonds" x="480" y="120" width="40" height="60"></Region>
+		<Region name="ace-spades" x="0" y="180" width="40" height="60"></Region>
+		<Region name="2-spades" x="40" y="180" width="40" height="60"></Region>
+		<Region name="3-spades" x="80" y="180" width="40" height="60"></Region>
+		<Region name="4-spades" x="120" y="180" width="40" height="60"></Region>
+		<Region name="5-spades" x="160" y="180" width="40" height="60"></Region>
+		<Region name="6-spades" x="200" y="180" width="40" height="60"></Region>
+		<Region name="7-spades" x="240" y="180" width="40" height="60"></Region>
+		<Region name="8-spades" x="280" y="180" width="40" height="60"></Region>
+		<Region name="9-spades" x="320" y="180" width="40" height="60"></Region>
+		<Region name="10-spades" x="360" y="180" width="40" height="60"></Region>
+		<Region name="jack-spades" x="400" y="180" width="40" height="60"></Region>
+		<Region name="queen-spades" x="440" y="180" width="40" height="60"></Region>
+		<Region name="king-spades" x="480" y="180" width="40" height="60"></Region>
+	</Regions>
+	<Animations>
+		
+	</Animations>
+</TextureAtlas>

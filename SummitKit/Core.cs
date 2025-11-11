@@ -1,7 +1,9 @@
-﻿using System;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using SummitKit.Input;
+using SummitKit.Physics;
+using System;
 
 namespace SummitKit;
 
@@ -33,6 +35,19 @@ public class Core : Game
     /// Gets the content manager used to load global assets.
     /// </summary>
     public static new ContentManager Content { get; private set; }
+
+
+    /// <summary>
+    /// Gets a reference to the input management system.
+    /// </summary>
+    public static InputManager Input { get; private set; }
+
+    public static EntityManager Entities { get; private set; }
+
+    /// <summary>
+    /// Gets or Sets a value that indicates if the game should exit when the esc key on the keyboard is pressed.
+    /// </summary>
+    public static bool ExitOnEscape { get; set; }
 
     /// <summary>
     /// Creates a new Core instance.
@@ -75,10 +90,13 @@ public class Core : Game
 
         // Mouse is visible by default.
         IsMouseVisible = true;
+        ExitOnEscape = true;
     }
 
     protected override void Initialize()
     {
+        Entities = new EntityManager();
+
         base.Initialize();
 
         // Set the core's graphics device to a reference of the base Game's
@@ -87,5 +105,29 @@ public class Core : Game
 
         // Create the sprite batch instance.
         SpriteBatch = new SpriteBatch(GraphicsDevice);
+
+        Input = new InputManager();
+    }
+
+    protected override void Update(GameTime gameTime)
+    {
+        // Update the input manager.
+        Input.Update(gameTime);
+        Entities.CheckClicks(Input.Mouse);
+        // Check for exit on escape key press.
+        if (ExitOnEscape && Input.Keyboard.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
+        {
+            Exit();
+        }
+
+        Entities.Update(gameTime);
+        base.Update(gameTime);
+    }
+
+    protected override void Draw(GameTime gameTime)
+    {
+        base.Draw(gameTime);
+    
+        Entities.Draw(SpriteBatch);
     }
 }
