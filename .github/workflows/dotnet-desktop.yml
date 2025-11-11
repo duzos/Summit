@@ -1,0 +1,68 @@
+name: Build & Release Windows EXE
+permissions:
+  contents: write
+on:
+  push:
+    # only triggers when you push tags like “v1.2.3”
+    tags:
+      - 'v*.*.*'       # normal releases
+      - 'v*.*.*-*'     # prereleases like v1.0.0-alpha
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release tag (e.g. v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+      release_name:
+        description: 'Optional release name'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build project
+        # adjust the path to your .csproj if needed
+        run: dotnet build ./Summit/Summit.csproj -c Release -maxcpucount:1
+      
+      - name: Publish self-contained Windows EXE
+        run: |
+          dotnet publish ./Summit/Summit.csproj -c Release -f net9.0-windows -r win-x64 --self-contained true -o publish
+          Compress-Archive -Path publish\* -DestinationPath game-${{ github.event.inputs.tag_name || github.ref_name }}.zip
+
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body: |
+            Release of version ${{ github.ref_name }}
+            — built automatically via GitHub Actions.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
+          name: Release ${{ github.event.inputs.tag_name || github.ref_name }}
+          body: |
+            Built automatically by GitHub Actions.
+          files: game-${{ github.event.inputs.tag_name || github.ref_name }}.zip
+          prerelease: ${{ contains(github.event.inputs.tag_name || github.ref_name, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
