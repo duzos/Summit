@@ -12,7 +12,7 @@ namespace Summit.Card;
 
 public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas))
 {
-    public CardData Data { get; init; }
+    public CardData Data { get; init; } = data;
 
     public override void OnClick(MouseState state)
     {

@@ -48,6 +48,14 @@ public class Deck(IEnumerable<CardData> cards)
         }
     }
 
+    public void AddAll(IEnumerable<CardEntity> cards)
+    {
+        foreach (var card in cards)
+        {
+            if (card == null || card.Data == null) continue;
+            Cards.Enqueue(card.Data);
+        }
+    }
     public void Deal(Hand hand)
     {
         if (Cards.Count == 0) return;

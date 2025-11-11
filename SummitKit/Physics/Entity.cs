@@ -223,6 +223,8 @@ public class Entity : IDraw, IUpdating, IClickable
 
     public void MoveTo(Vector2 pos, TimeSpan time, TimeSpan delay, Action<Target> callback = null, bool centered = true)
     {
+        if (MoveTarget is not null) return;
+
         MoveTarget = new(centered ? pos + new Vector2(Width, Height) * 0.5F : pos, Position, time, delay, callback);
     }
 

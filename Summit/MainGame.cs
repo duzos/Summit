@@ -35,16 +35,12 @@ namespace Summit
             Atlas = TextureAtlas.FromFile(Content, "assets/atlas-definition.xml");
             MainDeck = new();
             MainDeck.Shuffle();
-            MainHand = new()
-            {
-                MaxSize = 5
-            };
+            MainHand = new();
 
             var button = new Button(Atlas.CreateSprite("ace-hearts"), but =>
             {
-                MainHand.Clear();
-                MainHand.DespawnCards();
-                MainDeck.AddAll(MainHand.Cards);
+                MainDeck.AddAll(MainHand.Selected);
+                MainHand.DiscardSelected();
                 MainDeck.Deal(MainHand);
                 MainHand.SpawnCards();
             });

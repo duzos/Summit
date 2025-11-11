@@ -14,14 +14,30 @@ namespace Summit.Card;
 
 public class Hand
 {
-    public int MaxSize { get; set; }
+    public static readonly Comparison<CardData> SortByValue = (a, b) =>
+    {
+        int aValue = a.Rank == 1 ? 14 : a.Rank;
+        int bValue = b.Rank == 1 ? 14 : b.Rank;
+        return aValue != bValue ? bValue - aValue : a.Suit.CompareTo(b.Suit);
+    };
+
+    public static readonly Comparison<CardData> SortBySuit = (a, b) =>
+    {
+        int suitComparison = a.Suit.CompareTo(b.Suit);
+        if (suitComparison != 0)
+            return suitComparison;
+        int aValue = a.Rank == 1 ? 14 : a.Rank;
+        int bValue = b.Rank == 1 ? 14 : b.Rank;
+        return bValue - aValue;
+    };
+
+    public int SelectedMaxSize { get; set; } = 5;
+    public int MaxSize { get; set; } = 10;
     private readonly List<CardData> _cards;
     private readonly Dictionary<CardData, CardEntity> _entities;
     private readonly ObservableCollection<CardEntity> _selected;
     private readonly HashSet<CardEntity> _selectedSet;
 
-    // expose the observable collection so callers can add/remove items;
-    // CollectionChanged is handled to animate added/removed items.
     public ObservableCollection<CardEntity> Selected => _selected;
 
     public Hand()
@@ -59,12 +75,17 @@ public class Hand
         return _cards.Count >= MaxSize;
     }
 
+    public bool IsSelectedFull()
+    {
+        if (SelectedMaxSize <= 0)
+            return false;
+        return _selected.Count >= SelectedMaxSize;
+    }
+
     public void SpawnCards()
     {
         if (_cards.Count == 0)
             return;
-
-        const float spacing = 10f;
 
         // Ensure an entity exists for every card and add new entities to the manager,
         // but don't position them yet — we'll compute a centered layout first.
@@ -83,6 +104,19 @@ public class Hand
                 Core.Entities.AddEntity(entity);
             }
         }
+
+        SortCards(SortByValue);
+    }
+
+    public void SortCards(Comparison<CardData> comparison)
+    {
+        _cards.Sort(comparison);
+        UpdatePositions();
+    }
+
+    private void UpdatePositions()
+    {
+        const float spacing = 10f;
 
         // Compute total width of the hand (sum of card widths + spacing between them)
         float totalWidth = 0f;
@@ -121,6 +155,16 @@ public class Hand
         _entities.Clear();
     }
 
+    public void DiscardSelected()
+    {
+        foreach (var selected in _selected)
+        {
+            MoveAndDespawn(selected, TimeSpan.FromSeconds(0.5));
+            _cards.Remove(selected.Data);
+        }
+
+        _selected.Clear();
+    }
 
     /// <summary>
     /// moves the entity off-screen and despawns it
@@ -144,11 +188,25 @@ public class Hand
 
         if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems != null)
         {
+            // When items are added, enforce SelectedMaxSize. If the addition would exceed
+            // the limit, reject those items by removing them from the collection.
             foreach (CardEntity item in e.NewItems)
             {
-                // only animate if it wasn't already selected
-                if (_selectedSet.Add(item))
+                // If item already tracked as selected, skip.
+                if (_selectedSet.Contains(item))
+                    continue;
+
+                // If there's a positive limit and we've already reached it, reject this add.
+                if (SelectedMaxSize > 0 && _selected.Count > SelectedMaxSize)
                 {
+                    // Remove the item we just saw added to enforce the max.
+                    // Do not add it to _selectedSet so the Remove event won't attempt to animate again.
+                    _selected.Remove(item);
+                }
+                else
+                {
+                    // Accept the selection and animate up.
+                    _selectedSet.Add(item);
                     item.MoveTo(item.Position - new Vector2(0, 10), TimeSpan.FromSeconds(0.1), TimeSpan.Zero, null, false);
                 }
             }
