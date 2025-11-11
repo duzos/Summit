@@ -1,5 +1,6 @@
 name: Build & Release Windows EXE
-
+permissions:
+  contents: write
 on:
   push:
     # only triggers when you push tags like “v1.2.3”
@@ -54,11 +55,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload EXE asset to Release
+      - name: Create or update GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
-          # path to the published output; here we upload the entire folder as a zip
-          files: publish\**\*
+          name: Release ${{ github.event.inputs.tag_name || github.ref_name }}
+          body: |
+            Built automatically by GitHub Actions.
+          files: game-${{ github.event.inputs.tag_name || github.ref_name }}.zip
+          prerelease: ${{ contains(github.event.inputs.tag_name || github.ref_name, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
