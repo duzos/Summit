@@ -34,7 +34,7 @@ jobs:
 
       - name: Build project
         # adjust the path to your .csproj if needed
-        run: dotnet build ./Summit/Summit.csproj -c Release
+        run: dotnet build ./Summit/Summit.csproj -c Release -maxcpucount 1
 
       - name: Publish self-contained Windows EXE
         # adjust project path and runtime identifier (rid) as needed
