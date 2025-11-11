@@ -57,7 +57,7 @@ jobs:
       - name: Upload EXE asset to Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag_name || github.ref_name }}
           # path to the published output; here we upload the entire folder as a zip
           files: publish\**\*
         env:
