@@ -56,6 +56,8 @@
 		<Region name="king-diamonds" x="480" y="180" width="40" height="60"></Region>
 		<Region name="blue-back" x="520" y="0" width="40" height="60"></Region>
 		<Region name="red-back" x="520" y="60" width="40" height="60"></Region>
+		<Region name="rank-btn" x="40" y="240" width="40" height="20"></Region>
+		<Region name="suit-btn" x="80" y="240" width="40" height="20"></Region>
 	</Regions>
 	<Animations>
 		

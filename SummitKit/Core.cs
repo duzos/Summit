@@ -97,8 +97,6 @@ public class Core : Game
     {
         Entities = new EntityManager();
 
-        base.Initialize();
-
         // Set the core's graphics device to a reference of the base Game's
         // graphics device.
         GraphicsDevice = base.GraphicsDevice;
@@ -107,6 +105,8 @@ public class Core : Game
         SpriteBatch = new SpriteBatch(GraphicsDevice);
 
         Input = new InputManager();
+
+        base.Initialize();
     }
 
     protected override void Update(GameTime gameTime)
