@@ -28,4 +28,14 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
 
         MainGame.MainHand.Selected.Add(this);
     }
+
+    public override void OnDrag(MouseState state, Vector2 dragOffset)
+    {
+        base.OnDrag(state, dragOffset);
+    }
+
+    public override void OnRelease(MouseState state)
+    {
+        base.OnRelease(state);
+    }
 }

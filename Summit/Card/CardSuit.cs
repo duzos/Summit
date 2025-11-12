@@ -13,3 +13,27 @@ public enum CardSuit
     Clubs,
     Spades
 }
+
+public static class CardSuitExtensions
+{
+    public static string ToSymbol(this CardSuit suit) => suit switch
+    {
+        CardSuit.Hearts => "♥",
+        CardSuit.Diamonds => "♦",
+        CardSuit.Clubs => "♣",
+        CardSuit.Spades => "♠",
+        _ => throw new ArgumentOutOfRangeException(nameof(suit), suit, null)
+    };
+
+    public static float Apply(this CardSuit suit, float total, float value)
+    {
+        return suit switch
+        {
+            CardSuit.Hearts => total * value,
+            CardSuit.Diamonds => total + value,
+            CardSuit.Clubs => total / value,
+            CardSuit.Spades => total - value,
+            _ => throw new ArgumentOutOfRangeException(nameof(suit), suit, null)
+        };
+    }
+}

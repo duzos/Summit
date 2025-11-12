@@ -70,4 +70,9 @@ public class CardData
         string regionName = $"{rankString}-{suitString}";
         return atlas.CreateSprite(regionName);
     }
+
+    public float Apply(float total)
+    {
+        return Suit.Apply(total, Math.Min(Rank, 10));
+    }
 }

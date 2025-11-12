@@ -82,6 +82,18 @@ public class Hand
         return _selected.Count >= SelectedMaxSize;
     }
 
+    public float TotalValue()
+    {
+        float total = 0f;
+
+        foreach (var cardEntity in _selected)
+        {
+            total = cardEntity.Data.Apply(total);
+        }
+
+        return total;
+    }
+
     public void SpawnCards()
     {
         if (_cards.Count == 0)
@@ -210,6 +222,7 @@ public class Hand
                     item.MoveTo(item.Position - new Vector2(0, 10), TimeSpan.FromSeconds(0.1), TimeSpan.Zero, null, false);
                 }
             }
+            ReorderSelectedToMatchCards();
         }
         else if (e.Action == NotifyCollectionChangedAction.Remove && e.OldItems != null)
         {
@@ -229,6 +242,29 @@ public class Hand
                 item.MoveTo(item.Position + new Vector2(0, 10), TimeSpan.FromSeconds(0.1), TimeSpan.Zero, null, false);
             }
             _selectedSet.Clear();
+        }
+    }
+
+    private void ReorderSelectedToMatchCards()
+    {
+        if (_selected.Count <= 1) return;
+
+        var ordered = _selected
+                       .OrderBy(ent =>
+                       {
+                           int idx = _cards.IndexOf(ent.Data);
+                           return idx < 0 ? int.MaxValue / 2 : idx;
+                       })
+                       .ToList();
+
+        for (int i = 0; i < ordered.Count; i++)
+        {
+            var desired = ordered[i];
+            int currentIndex = _selected.IndexOf(desired);
+            if (currentIndex != i)
+            {
+                _selected.Move(currentIndex, i);
+            }
         }
     }
 }

@@ -9,6 +9,7 @@ using SummitKit.Physics;
 using System;
 using System.Collections;
 using System.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Summit
 {
@@ -18,6 +19,7 @@ namespace Summit
         public static Deck MainDeck { get; private set; }
         public static Hand MainHand { get; private set; }
 
+        private SpriteFont _font;
         public MainGame() : base("Summit", 1280, 720, false)
         {
 
@@ -49,6 +51,8 @@ namespace Summit
             button.Position = new Vector2(1280 - button.Width - 10, 720 - button.Height - 10);
 
             Entities.AddEntity(button);
+
+            _font = Content.Load<SpriteFont>("assets/primary");
         }
 
         protected override void Update(GameTime gameTime)
@@ -69,7 +73,18 @@ namespace Summit
             SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
             base.Draw(gameTime);
-
+            string score = MainHand.TotalValue().ToString();
+            SpriteBatch.DrawString(
+                _font,                   // font
+                score,     // text
+                new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2), GraphicsDevice.PresentationParameters.BackBufferHeight / 2 - 100),           // position
+                Color.Black,             // color
+                0.0F,
+                _font.MeasureString(score) * 0.5F,
+                5.0F,
+                SpriteEffects.None,
+                0.0f
+            );
             SpriteBatch.End();
         }
     }

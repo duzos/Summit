@@ -56,6 +56,15 @@ public class Entity : IDraw, IUpdating, IClickable
         }
     }
 
+    public Vector2 Centre
+    {
+        get
+        {
+            UpdateAABBIfNeeded();
+            return new Vector2(AABB.X + AABB.Width / 2f, AABB.Y + AABB.Height / 2f);
+        }
+    }
+
     public bool HasCollisions { get; set; }
     public bool HasGravity { get; set; }
 
