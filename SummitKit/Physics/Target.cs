@@ -15,7 +15,7 @@ namespace SummitKit.Physics;
 public class Target(Vector2 to, Vector2 from, TimeSpan duration, TimeSpan delay, Action<Target> callback) : IUpdating
 {
     public Vector2 To { get; init; } = to;
-    public Vector2 From { get; init; } = from;
+    public Vector2 From { get; set; } = from;
     public TimeSpan Duration { get; init; } = duration + delay;
     public TimeSpan Delay { get; init; } = delay;
     public Vector2 Position { get; private set; } = from;

@@ -14,7 +14,7 @@ public class EntityManager : IUpdating, IDraw
 {
     private readonly List<Entity> _entities;
     public IReadOnlyList<Entity> Entities => _entities.AsReadOnly();
-    public bool LockToScreenBounds { get; set; } = false;
+    public bool LockToScreenBounds { get; set; } = true;
     public float Gravity { get; set; } = 9.81F;
     private DragHandler _drag = new();
     public Entity? DraggedEntity => _drag.Dragged;
@@ -48,7 +48,7 @@ public class EntityManager : IUpdating, IDraw
         if (LockToScreenBounds)
         {
             var bounds = new Rectangle(0, 0, Core.GraphicsDevice.Viewport.Width, Core.GraphicsDevice.Viewport.Height);
-            _entities.ForEach(e => e.KeepInsideArea(bounds));
+            _entities.ForEach(e => { if (e.CollidesWithWindowEdges) e.KeepInsideArea(bounds); });
         }
 
         _drag.Update(gameTime);
@@ -64,7 +64,7 @@ public class EntityManager : IUpdating, IDraw
         if (input.WasButtonJustPressed(MouseButton.Left))
         {
             var entity = GetEntityAtPosition(input.Position.ToVector2());
-            if (entity is not null)
+            if (entity is not null && entity.Draggable)
             {
                 _drag.Possible = entity;
                 _drag.PossibleOffset = input.Position.ToVector2() - entity.Position;

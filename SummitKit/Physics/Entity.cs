@@ -69,6 +69,9 @@ public class Entity : IDraw, IUpdating, IClickable
 
     public bool HasCollisions { get; set; }
     public bool HasGravity { get; set; }
+    public bool CollidesWithWindowEdges { get; set; } = true;
+    public bool Draggable { get; set; } = true;
+    public bool DragFollowsCursor { get; set; } = true;
 
     public Entity(Sprite sprite)
     {
@@ -201,6 +204,11 @@ public class Entity : IDraw, IUpdating, IClickable
         } else
         {
             MoveTarget = QueuedMovement;
+            
+            if (MoveTarget is not null) {
+                MoveTarget.From = Position;
+                QueuedMovement = null;
+            }
         }
 
         Sprite?.Update(time);
@@ -229,6 +237,11 @@ public class Entity : IDraw, IUpdating, IClickable
     public virtual void OnDrag(MouseState state, Vector2 dragOffset)
     {
         // Override in derived classes to handle mouse drag.
+
+        if (Draggable && DragFollowsCursor)
+        {
+            Position = state.Position.ToVector2() - dragOffset;
+        }
     }
 
     public virtual void OnCollision(Entity other)

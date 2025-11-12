@@ -113,6 +113,7 @@ public class Hand
 
                 // place off-screen initially so MoveTo animates from somewhere visible
                 entity.Position = new(Core.GraphicsDevice.Viewport.Width - entity.Width - 10, Core.GraphicsDevice.Viewport.Height - entity.Height - 10);
+
                 Core.Entities.AddEntity(entity);
             }
         }
@@ -144,7 +145,7 @@ public class Hand
             totalWidth += spacing * (_cards.Count - 1);
 
         // Center the whole hand on screen; cards are laid out left-to-right starting at startX.
-        float centerX = Core.GraphicsDevice.Viewport.Width / 2f - widths[0] / 2;
+        float centerX = Core.GraphicsDevice.Viewport.Width / 2f - (widths.Length > 0 ? widths[0] / 2 : 0);
         float startX = centerX - (totalWidth / 2f);
         float centerY = Core.GraphicsDevice.Viewport.Height / 2f;
 

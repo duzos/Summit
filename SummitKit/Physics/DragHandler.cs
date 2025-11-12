@@ -9,7 +9,7 @@ namespace SummitKit.Physics;
 
 public class DragHandler : IUpdating
 {
-    private static readonly TimeSpan HoldTime = TimeSpan.FromSeconds(1);
+    private static readonly TimeSpan HoldTime = TimeSpan.FromSeconds(0.5);
     private TimeSpan _elapsed;
     private Entity? _possible;
     public Entity? Possible

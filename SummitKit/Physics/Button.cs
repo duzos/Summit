@@ -17,6 +17,7 @@ public class Button : Entity
     {
         HasCollisions = false;
         HasGravity = false;
+        Draggable = false;
         _callback = callback;
         _onRelease = onRelease;
     }

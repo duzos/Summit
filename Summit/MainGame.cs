@@ -66,6 +66,7 @@ namespace Summit
             });
             button.Scale *= 2F;
             button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
+
             Entities.AddEntity(button);
 
             _font = Content.Load<SpriteFont>("assets/primary");
