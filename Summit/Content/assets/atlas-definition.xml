@@ -54,6 +54,8 @@
 		<Region name="jack-diamonds" x="400" y="180" width="40" height="60"></Region>
 		<Region name="queen-diamonds" x="440" y="180" width="40" height="60"></Region>
 		<Region name="king-diamonds" x="480" y="180" width="40" height="60"></Region>
+		<Region name="blue-back" x="520" y="0" width="40" height="60"></Region>
+		<Region name="red-back" x="520" y="60" width="40" height="60"></Region>
 	</Regions>
 	<Animations>
 		

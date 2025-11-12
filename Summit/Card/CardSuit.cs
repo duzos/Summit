@@ -29,10 +29,10 @@ public static class CardSuitExtensions
     {
         return suit switch
         {
-            CardSuit.Hearts => total * value,
-            CardSuit.Diamonds => total + value,
-            CardSuit.Clubs => total / value,
-            CardSuit.Spades => total - value,
+            CardSuit.Hearts => total - value,
+            CardSuit.Diamonds => total / value,
+            CardSuit.Clubs => total + value,
+            CardSuit.Spades => total * value,
             _ => throw new ArgumentOutOfRangeException(nameof(suit), suit, null)
         };
     }

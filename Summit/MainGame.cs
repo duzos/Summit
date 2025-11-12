@@ -39,7 +39,7 @@ namespace Summit
             MainDeck.Shuffle();
             MainHand = new();
 
-            var button = new Button(Atlas.CreateSprite("ace-hearts"), but =>
+            var button = new Button(Atlas.CreateSprite("blue-back"), but =>
             {
                 MainDeck.AddAll(MainHand.Selected);
                 MainHand.DiscardSelected();
