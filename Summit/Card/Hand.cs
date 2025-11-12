@@ -126,7 +126,7 @@ public class Hand
         UpdatePositions();
     }
 
-    private void UpdatePositions()
+    public void UpdatePositions()
     {
         const float spacing = 10f;
 
@@ -153,8 +153,30 @@ public class Hand
         for (int i = 0; i < _cards.Count; i++)
         {
             var entity = _entities[_cards[i]];
-            entity.MoveTo(pos, TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(0.25 + (0.1 * i)));
+            
+            if (!entity.IsBeingDragged) { 
+                entity.MoveTo(pos - new Vector2(0, entity.IsSelected ? 10 : 0), TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(0.25 + (0.1 * i)));
+            }
             pos.X += widths[i] + spacing;
+        }
+    }
+
+    public void UpdateIndex(CardEntity entity)
+    {
+        if (!_entities.ContainsValue(entity))
+            return;
+
+        CardEntity nearest = Core.Entities.GetNearestEntity(entity.Position, float.MaxValue, val => val != entity && val is CardEntity valCard && _entities.ContainsValue(valCard)) as CardEntity;
+       
+        int curIndex = _cards.IndexOf(entity.Data);
+        int targetIndex = nearest != null ? _cards.IndexOf(nearest.Data) : curIndex;
+
+        // insert this card at the target index
+        if (curIndex != targetIndex)
+        {
+            _cards.RemoveAt(curIndex);
+            _cards.Insert(targetIndex, entity.Data);
+            UpdatePositions();
         }
     }
 

@@ -16,8 +16,8 @@ public class EntityManager : IUpdating, IDraw
     public IReadOnlyList<Entity> Entities => _entities.AsReadOnly();
     public bool LockToScreenBounds { get; set; } = false;
     public float Gravity { get; set; } = 9.81F;
-    private Entity? _draggedEntity;
-    private Vector2 _dragGrabOffset;
+    private DragHandler _drag = new();
+    public Entity? DraggedEntity => _drag.Dragged;
     public EntityManager()
     {
         _entities = [];
@@ -50,6 +50,8 @@ public class EntityManager : IUpdating, IDraw
             var bounds = new Rectangle(0, 0, Core.GraphicsDevice.Viewport.Width, Core.GraphicsDevice.Viewport.Height);
             _entities.ForEach(e => e.KeepInsideArea(bounds));
         }
+
+        _drag.Update(gameTime);
     }
 
     public void Draw(SpriteBatch sprite)
@@ -62,23 +64,20 @@ public class EntityManager : IUpdating, IDraw
         if (input.WasButtonJustPressed(MouseButton.Left))
         {
             var entity = GetEntityAtPosition(input.Position.ToVector2());
-            entity?.OnClick(input.CurrentState);
-
             if (entity is not null)
             {
-                _draggedEntity = entity;
-                _dragGrabOffset = input.Position.ToVector2() - entity.Position;
+                _drag.Possible = entity;
+                _drag.PossibleOffset = input.Position.ToVector2() - entity.Position;
             }
+            entity?.OnClick(input.CurrentState);
         }
 
         if (input.WasButtonJustReleased(MouseButton.Left))
         {
-            var entity = _draggedEntity is not null ? _draggedEntity : GetEntityAtPosition(input.Position.ToVector2());
-            entity?.OnRelease(input.CurrentState);
-            if (_draggedEntity is not null)
-            {
-                _draggedEntity = null;
-            }
+            var entity = DraggedEntity is not null ? DraggedEntity : GetEntityAtPosition(input.Position.ToVector2());
+            bool dragged = DraggedEntity is not null;
+            _drag.Release();
+            entity?.OnRelease(input.CurrentState, dragged);
         }
 
         var hoverEntity = GetEntityAtPosition(input.Position.ToVector2());
@@ -86,10 +85,7 @@ public class EntityManager : IUpdating, IDraw
 
         if (input.IsButtonDown(MouseButton.Left))
         {
-            if (_draggedEntity is not null)
-            {
-                _draggedEntity.OnDrag(input.CurrentState, _dragGrabOffset);
-            }
+            DraggedEntity?.OnDrag(input.CurrentState, _drag.DragOffset);
         }
     }
 
@@ -122,4 +118,20 @@ public class EntityManager : IUpdating, IDraw
 
     public Entity GetEntityAtPosition(Vector2 position) => _entities.FirstOrDefault(e => e.AABB.Contains(position));
     public IEnumerable<Entity> GetEntitiesInArea(Rectangle area) => _entities.Where(e => e.AABB.Intersects(area));
+
+    public Entity GetNearestEntity(Vector2 position, float maxDistance, Predicate<Entity> predicate)
+    {
+        Entity? nearest = null;
+        float nearestDistSq = maxDistance * maxDistance;
+        foreach (var entity in _entities)
+        {
+            float distSq = Vector2.DistanceSquared(entity.Position, position);
+            if (distSq < nearestDistSq && predicate.Invoke(entity))
+            {
+                nearest = entity;
+                nearestDistSq = distSq;
+            }
+        }
+        return nearest;
+    }
 }

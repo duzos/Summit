@@ -28,10 +28,10 @@ public class Button : Entity
         base.OnClick(input);
     }
 
-    public override void OnRelease(MouseState input)
+    public override void OnRelease(MouseState input, bool wasBeingDragged)
     {
         if (_onRelease)
             _callback?.Invoke(this);
-        base.OnRelease(input);
+        base.OnRelease(input, wasBeingDragged);
     }
 }

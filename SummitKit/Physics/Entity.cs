@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework.Input;
 using SummitKit.Graphics;
 using SummitKit.Input;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace SummitKit.Physics;
 
@@ -19,7 +21,7 @@ public class Entity : IDraw, IUpdating, IClickable
     private int _cachedHeightInt = -1;
 
     public Target MoveTarget { get; set; }
-
+    public Target QueuedMovement { get; private set; }
     public Sprite Sprite
     {
         get => _sprite;
@@ -99,6 +101,7 @@ public class Entity : IDraw, IUpdating, IClickable
         return other.Contains(AABB);
     }
 
+    public bool IsBeingDragged => Core.Entities.DraggedEntity == this;
 
     /// <summary>
     /// Ensure this entity's position is adjusted so that its AABB is fully inside <paramref name="container"/>.
@@ -195,6 +198,9 @@ public class Entity : IDraw, IUpdating, IClickable
             {
                 MoveTarget = null;
             }
+        } else
+        {
+            MoveTarget = QueuedMovement;
         }
 
         Sprite?.Update(time);
@@ -210,7 +216,7 @@ public class Entity : IDraw, IUpdating, IClickable
         // Override in derived classes to handle clicks.
     }
 
-    public virtual void OnRelease(MouseState state)
+    public virtual void OnRelease(MouseState state, bool wasBeingDragged)
     {
         // Override in derived classes to handle mouse button releases.
     }
@@ -232,9 +238,16 @@ public class Entity : IDraw, IUpdating, IClickable
 
     public void MoveTo(Vector2 pos, TimeSpan time, TimeSpan delay, Action<Target> callback = null, bool centered = true)
     {
-        if (MoveTarget is not null) return;
+        Target created = new(centered ? pos + new Vector2(Width, Height) * 0.5F : pos, Position, time, delay, callback);
 
-        MoveTarget = new(centered ? pos + new Vector2(Width, Height) * 0.5F : pos, Position, time, delay, callback);
+
+        if (MoveTarget is not null)
+        {
+            QueuedMovement = created;
+            return;
+        }
+
+        MoveTarget = created;
     }
 
     /// <summary>
