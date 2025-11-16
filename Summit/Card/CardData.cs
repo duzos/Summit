@@ -12,6 +12,7 @@ public class CardData
     private CardType _type;
     private int _rank;
     public CardSuit Suit { get; init; }
+    public bool Backwards { get; set; }
 
     public CardData(int rank, CardSuit suit)
     {
@@ -57,6 +58,11 @@ public class CardData
 
     public Sprite CreateSprite(TextureAtlas atlas)
     {
+        if (Backwards)
+        {
+            return atlas.CreateSprite("blue-back");
+        }
+
         string rankString = Type switch
         {
             CardType.Ace => "ace",

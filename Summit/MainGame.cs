@@ -102,6 +102,18 @@ namespace Summit
                 SpriteEffects.None,
                 0.0f
             );
+
+            SpriteBatch.DrawString(
+                _font,
+                Entities.DraggedEntity is not CardEntity e ? "" : MainHand.Cards.ToList().IndexOf(e.Data).ToString(),
+                new(10, 10),
+                Color.Black,
+                0.0F,
+                Vector2.Zero,
+                1.0F,
+                SpriteEffects.None,
+                0.0f
+                );
             SpriteBatch.End();
         }
     }

@@ -35,7 +35,7 @@ public class Sprite : IUpdating
     /// <remarks>
     /// Default value is Color.White
     /// </remarks>
-    public Color Color { get; set; } = Color.White;
+    public Color Colour { get; set; } = Color.White;
 
     /// <summary>
     /// Gets or Sets the amount of rotation, in radians, to apply when rendering this sprite.
@@ -76,6 +76,7 @@ public class Sprite : IUpdating
     /// Default value is 0.0f
     /// </remarks>
     public float LayerDepth { get; set; } = 0.0f;
+    public Shadow Shadow { get; set; } = new Shadow();
 
     /// <summary>
     /// Gets the width, in pixels, of this sprite. 
@@ -108,7 +109,19 @@ public class Sprite : IUpdating
     /// <param name="position">The xy-coordinate position to render this sprite at.</param>
     public void Draw(SpriteBatch spriteBatch, Vector2 position)
     {
-        Region.Draw(spriteBatch, position, Color, Rotation, Origin, Scale, Effects, LayerDepth);
+        Shadow?.Draw(spriteBatch, this, position);
+        Region.Draw(spriteBatch, position, Colour, Rotation, Origin, Scale, Effects, LayerDepth);
+    }
+
+    public void CopyTo(Sprite other)
+    {
+        other.Origin = Origin;
+        other.Shadow = Shadow;
+        other.LayerDepth = LayerDepth;
+        other.Colour = Colour;
+        other.Effects = Effects;
+        other.Rotation = Rotation;
+        other.Scale = Scale;
     }
 
     public virtual void Update(GameTime deltaTime)

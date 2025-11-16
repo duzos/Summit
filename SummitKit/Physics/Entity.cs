@@ -4,8 +4,6 @@ using Microsoft.Xna.Framework.Input;
 using SummitKit.Graphics;
 using SummitKit.Input;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 
 namespace SummitKit.Physics;
 
@@ -21,7 +19,7 @@ public class Entity : IDraw, IUpdating, IClickable
     private int _cachedHeightInt = -1;
 
     public Target MoveTarget { get; set; }
-    public Target QueuedMovement { get; private set; }
+    private Target _queued;
     public Sprite Sprite
     {
         get => _sprite;
@@ -72,7 +70,7 @@ public class Entity : IDraw, IUpdating, IClickable
     public bool CollidesWithWindowEdges { get; set; } = true;
     public bool Draggable { get; set; } = true;
     public bool DragFollowsCursor { get; set; } = true;
-
+    protected Shadow Shadow => Sprite?.Shadow;
     public Entity(Sprite sprite)
     {
         Sprite = sprite;
@@ -201,14 +199,11 @@ public class Entity : IDraw, IUpdating, IClickable
             {
                 MoveTarget = null;
             }
-        } else
+        } else if (_queued is not null)
         {
-            MoveTarget = QueuedMovement;
-            
-            if (MoveTarget is not null) {
-                MoveTarget.From = Position;
-                QueuedMovement = null;
-            }
+            _queued.From = Position;
+            MoveTarget = _queued;
+            _queued = null;
         }
 
         Sprite?.Update(time);
@@ -249,14 +244,18 @@ public class Entity : IDraw, IUpdating, IClickable
         KeepOutsideArea(other.AABB);
     }
 
-    public void MoveTo(Vector2 pos, TimeSpan time, TimeSpan delay, Action<Target> callback = null, bool centered = true)
+    public void MoveTo(Vector2 pos, TimeSpan time, TimeSpan delay, Action<Target> callback = null, bool centered = true, bool replaceExisting = true)
     {
         Target created = new(centered ? pos + new Vector2(Width, Height) * 0.5F : pos, Position, time, delay, callback);
 
 
         if (MoveTarget is not null)
         {
-            QueuedMovement = created;
+            if (replaceExisting && MoveTarget.To == created.To) return;
+            else if (!replaceExisting)
+            {
+                _queued = created;
+            }
             return;
         }
 

@@ -113,25 +113,25 @@ public class Hand
 
                 // place off-screen initially so MoveTo animates from somewhere visible
                 entity.Position = new(Core.GraphicsDevice.Viewport.Width - entity.Width - 10, Core.GraphicsDevice.Viewport.Height - entity.Height - 10);
+                entity.SetSelected(false);
 
                 Core.Entities.AddEntity(entity);
             }
         }
 
-        SortCards(SortByValue);
+        UpdatePositions(i => TimeSpan.FromSeconds(0.1 + (0.05 * i)), i => TimeSpan.Zero);
     }
 
     public void SortCards(Comparison<CardData> comparison)
     {
         _cards.Sort(comparison);
-        UpdatePositions();
+        UpdatePositions(i => TimeSpan.FromSeconds(0.1 + (0.05 * i)), i => TimeSpan.Zero);
     }
 
-    public void UpdatePositions()
+    public void UpdatePositions(Func<int, TimeSpan> indexToSpeed, Func<int, TimeSpan> indexToDelay)
     {
         const float spacing = 10f;
 
-        // Compute total width of the hand (sum of card widths + spacing between them)
         float totalWidth = 0f;
         float[] widths = new float[_cards.Count];
         for (int i = 0; i < _cards.Count; i++)
@@ -144,7 +144,6 @@ public class Hand
         if (_cards.Count > 1)
             totalWidth += spacing * (_cards.Count - 1);
 
-        // Center the whole hand on screen; cards are laid out left-to-right starting at startX.
         float centerX = Core.GraphicsDevice.Viewport.Width / 2f - (widths.Length > 0 ? widths[0] / 2 : 0);
         float startX = centerX - (totalWidth / 2f);
         float centerY = Core.GraphicsDevice.Viewport.Height / 2f;
@@ -154,12 +153,17 @@ public class Hand
         for (int i = 0; i < _cards.Count; i++)
         {
             var entity = _entities[_cards[i]];
-            
-            if (!entity.IsBeingDragged) { 
-                entity.MoveTo(pos - new Vector2(0, entity.IsSelected ? 10 : 0), TimeSpan.FromSeconds(0.5), TimeSpan.FromSeconds(0.25 + (0.1 * i)));
+
+            if (!entity.IsBeingDragged) {
+                entity.MoveTo(pos - new Vector2(0, entity.IsSelected ? 10 : 0), indexToSpeed.Invoke(i), indexToSpeed.Invoke(i));
             }
             pos.X += widths[i] + spacing;
         }
+    }
+
+    public void UpdatePositions()
+    {
+        UpdatePositions(i => TimeSpan.FromSeconds(0.1), i => TimeSpan.Zero);
     }
 
     public void UpdateIndex(CardEntity entity)
@@ -173,7 +177,7 @@ public class Hand
         int targetIndex = nearest != null ? _cards.IndexOf(nearest.Data) : curIndex;
 
         // insert this card at the target index
-        if (curIndex != targetIndex)
+        if (curIndex != targetIndex && curIndex != targetIndex - 1) // todo fix last index issue
         {
             _cards.RemoveAt(curIndex);
             _cards.Insert(targetIndex, entity.Data);
@@ -194,7 +198,7 @@ public class Hand
     {
         foreach (var selected in _selected)
         {
-            MoveAndDespawn(selected, TimeSpan.FromSeconds(0.5));
+            MoveAndDespawn(selected, TimeSpan.FromSeconds(0.25));
             _cards.Remove(selected.Data);
         }
 
@@ -206,13 +210,15 @@ public class Hand
     /// </summary>
     /// <param name="entity"></param>
     private void MoveAndDespawn(Entity entity, TimeSpan time)
-    { 
+    {
+        if (entity is CardEntity cardE && cardE.Data is not null)
+        {
+            _entities.Remove(cardE.Data);
+            cardE.Backwards = true;
+        }
+
         entity.MoveTo(new Vector2(Core.GraphicsDevice.Viewport.Width - entity.Width - 10, Core.GraphicsDevice.Viewport.Height - entity.Height - 10), time, TimeSpan.Zero, (t) =>
         {
-            if (entity is CardEntity cardE && cardE.Data is not null)
-            {
-                _entities.Remove(cardE.Data);
-            }
             Core.Entities.RemoveEntity(entity);
         }, false);
     }
@@ -227,22 +233,17 @@ public class Hand
             // the limit, reject those items by removing them from the collection.
             foreach (CardEntity item in e.NewItems)
             {
-                // If item already tracked as selected, skip.
                 if (_selectedSet.Contains(item))
                     continue;
 
-                // If there's a positive limit and we've already reached it, reject this add.
                 if (SelectedMaxSize > 0 && _selected.Count > SelectedMaxSize)
                 {
-                    // Remove the item we just saw added to enforce the max.
-                    // Do not add it to _selectedSet so the Remove event won't attempt to animate again.
                     _selected.Remove(item);
                 }
                 else
                 {
-                    // Accept the selection and animate up.
                     _selectedSet.Add(item);
-                    item.MoveTo(item.Position - new Vector2(0, 10), TimeSpan.FromSeconds(0.1), TimeSpan.Zero, null, false);
+                    item.MoveTo(item.Position - new Vector2(0, 10), TimeSpan.FromSeconds(0.1), TimeSpan.Zero, null, false, false);
                 }
             }
             ReorderSelectedToMatchCards();
@@ -253,7 +254,7 @@ public class Hand
             {
                 if (_selectedSet.Remove(item))
                 {
-                    item.MoveTo(item.Position + new Vector2(0, 10), TimeSpan.FromSeconds(0.1), TimeSpan.Zero, null, false);
+                    item.MoveTo(item.Position + new Vector2(0, 10), TimeSpan.FromSeconds(0.1), TimeSpan.Zero, null, false, false);
                 }
             }
         }

@@ -20,6 +20,7 @@ public class Button : Entity
         Draggable = false;
         _callback = callback;
         _onRelease = onRelease;
+        Shadow.Enabled = false;
     }
 
     public override void OnClick(MouseState input)

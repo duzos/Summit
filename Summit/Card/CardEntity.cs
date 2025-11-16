@@ -19,6 +19,28 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
     {
         if (val && !IsSelected) MainGame.MainHand.Selected.Add(this);
         else if (!val) MainGame.MainHand.Selected.Remove(this);
+
+        if (Shadow is not null)
+        {
+            Shadow.Enabled = MainGame.MainHand.Selected.Contains(this);
+        }
+    }
+
+    public bool Backwards
+    {
+        get => Data.Backwards;
+        set
+        {
+            Data.Backwards = value;
+
+            var preSprite = Sprite;
+            Sprite = Data.CreateSprite(MainGame.Atlas);
+
+            if (preSprite is not null && Sprite is not null)
+            {
+                preSprite.CopyTo(Sprite);
+            }
+        }
     }
 
     public override void OnClick(MouseState state)
@@ -55,6 +77,7 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
 
         if (wasBeingDragged) { 
             MainGame.MainHand.UpdateIndex(this);
+            MainGame.MainHand.UpdatePositions();
         }
     }
 }
