@@ -62,10 +62,9 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
     {
         base.OnDrag(state, dragOffset);
 
-        if (MoveTarget is not null || !(MainGame.MainHand.Entities.Contains(this))) return;
-
-        Position = state.Position.ToVector2() - dragOffset;
         MainGame.MainHand.UpdateIndex(this);
+        if (MoveTarget is not null || !(MainGame.MainHand.Entities.Contains(this))) return;
+        
         SetSelected(false);
     }
 
@@ -73,9 +72,11 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
     {
         base.OnRelease(state, wasBeingDragged);
 
-        if (MoveTarget is not null || !(MainGame.MainHand.Entities.Contains(this))) return;
+        if (!(MainGame.MainHand.Entities.Contains(this))) return;
 
-        if (wasBeingDragged) { 
+        if (wasBeingDragged) {
+            Velocity = Vector2.Zero;
+            MoveTarget = null;
             MainGame.MainHand.UpdateIndex(this);
             MainGame.MainHand.UpdatePositions();
         }

@@ -46,6 +46,7 @@ namespace Summit
                 MainDeck.Deal(MainHand);
                 MainHand.SpawnCards();
             });
+            button.Shadow.Enabled = true;
             // bottom right corner
             button.Scale *= 2F;
             button.Position = new Vector2(1280 - button.Width - 10, 720 - button.Height - 10);

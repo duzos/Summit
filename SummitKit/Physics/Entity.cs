@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using SummitKit.Graphics;
 using SummitKit.Input;
 using System;
+using System.Formats.Tar;
 
 namespace SummitKit.Physics;
 
@@ -18,8 +19,10 @@ public class Entity : IDraw, IUpdating, IClickable
     private int _cachedWidthInt = -1;
     private int _cachedHeightInt = -1;
 
-    public Target MoveTarget { get; set; }
-    private Target _queued;
+    public ITarget MoveTarget { get; protected set; }
+    private ITarget _queued;
+    public Vector2 Velocity { get; set; }
+    public Vector2 Friction { get; set; } = new Vector2(0.5f, 0.5f);
     public Sprite Sprite
     {
         get => _sprite;
@@ -70,7 +73,7 @@ public class Entity : IDraw, IUpdating, IClickable
     public bool CollidesWithWindowEdges { get; set; } = true;
     public bool Draggable { get; set; } = true;
     public bool DragFollowsCursor { get; set; } = true;
-    protected Shadow Shadow => Sprite?.Shadow;
+    public Shadow Shadow => Sprite?.Shadow;
     public Entity(Sprite sprite)
     {
         Sprite = sprite;
@@ -80,6 +83,7 @@ public class Entity : IDraw, IUpdating, IClickable
 
     public float Height => Sprite?.Height ?? 0f;
     public float Width => Sprite?.Width ?? 0f;
+    public bool IsHovered => AABB.Contains(Core.Input.Mouse.Position);
     public Vector2 Scale {
         get => Sprite?.Scale ?? Vector2.Zero;
         set
@@ -190,10 +194,14 @@ public class Entity : IDraw, IUpdating, IClickable
 
     public virtual void Update(GameTime time)
     {
+        // Apply velocity and multiplicative friction
+        Position += Velocity * (float)time.ElapsedGameTime.TotalSeconds;
+        Velocity *= Friction;
+
         if (MoveTarget is not null)
         {
             MoveTarget.Update(time);
-            Position = MoveTarget.Position;
+            //Position = MoveTarget.Position;
 
             if (MoveTarget.IsComplete)
             {
@@ -229,13 +237,12 @@ public class Entity : IDraw, IUpdating, IClickable
         // Override in derived classes to handle mouse hover.
     }
 
+
     public virtual void OnDrag(MouseState state, Vector2 dragOffset)
     {
-        // Override in derived classes to handle mouse drag.
-
-        if (Draggable && DragFollowsCursor)
+        if (Draggable && DragFollowsCursor && MoveTarget is null)
         {
-            Position = state.Position.ToVector2() - dragOffset;
+            MoveTo(new VelocityTarget(() => Core.Input.Mouse.CurrentState.Position.ToVector2() - dragOffset, this, null, () => IsBeingDragged, 50, 1000, Width), false);
         }
     }
 
@@ -244,22 +251,25 @@ public class Entity : IDraw, IUpdating, IClickable
         KeepOutsideArea(other.AABB);
     }
 
-    public void MoveTo(Vector2 pos, TimeSpan time, TimeSpan delay, Action<Target> callback = null, bool centered = true, bool replaceExisting = true)
+    public void MoveTo(ITarget target, bool replaceExisting = true)
     {
-        Target created = new(centered ? pos + new Vector2(Width, Height) * 0.5F : pos, Position, time, delay, callback);
-
-
         if (MoveTarget is not null)
         {
-            if (replaceExisting && MoveTarget.To == created.To) return;
+            if (replaceExisting && MoveTarget.To == target.To) return;
             else if (!replaceExisting)
             {
-                _queued = created;
+                _queued = target;
             }
             return;
         }
 
-        MoveTarget = created;
+        MoveTarget = target;
+    }
+
+    public void MoveTo(Vector2 to, TimeSpan duration, TimeSpan delay, Action<ITarget> callback = null, bool centered = true, bool replaceExisting = true, InterpolationType type = InterpolationType.Smooth)
+    {
+        var target = new InterpolatedTarget(to + (centered ? new Vector2(Width, Height) * 0.5F : Vector2.Zero), Position, (pos) => Position = pos, duration, delay, type, callback);
+        MoveTo(target, replaceExisting);
     }
 
     /// <summary>
