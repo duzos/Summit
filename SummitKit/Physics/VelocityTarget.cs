@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SummitKit.Physics;
 
-public class VelocityTarget(Func<Vector2> to, Func<Vector2> currentPosition, Func<Vector2> getter, Action<Vector2> setter, Action<ITarget> callback, Func<bool> continues, float acceleration = 5, float target = 120, float slowRadius = 20) : ITarget {
+public class VelocityTarget(Func<Vector2> to, Func<Vector2> currentPosition, Func<Vector2> getter, Action<Vector2> setter, Action<ITarget<Vector2>> callback, Func<bool> continues, float acceleration = 5, float target = 120, float slowRadius = 20) : ITarget<Vector2> {
     public float TargetSpeed { get => target * 100; }
     public float Acceleration { get => acceleration * 1000; }
     public float SlowRadius { get; set; } = slowRadius;
@@ -17,13 +17,13 @@ public class VelocityTarget(Func<Vector2> to, Func<Vector2> currentPosition, Fun
     private readonly Func<Vector2> GetTo = to;
     private readonly Func<Vector2> GetFrom = currentPosition;
     private readonly Func<bool> ShouldContinue = continues;
-    public VelocityTarget(Func<Vector2> to, Entity entity, Action<ITarget> callback = null, Func<bool> continues = null, float accel = 5f, float target = 10, float slowRadius = 20) : this(to, () => entity.Position, () => entity.Velocity, (vel) => entity.Velocity = vel, callback, continues, accel, target, slowRadius)
+    public VelocityTarget(Func<Vector2> to, Entity entity, Action<ITarget<Vector2>> callback = null, Func<bool> continues = null, float accel = 5f, float target = 10, float slowRadius = 20) : this(to, () => entity.Position, () => entity.Velocity, (vel) => entity.Velocity = vel, callback, continues, accel, target, slowRadius)
     {
     }
 
     public Vector2 From { get => GetFrom(); set { } }
     public Vector2 To { get => GetTo(); }
-    public Action<ITarget> Callback { get; set; } = null;
+    public Action<ITarget<Vector2>> Callback { get; set; } = null;
     public bool IsComplete => ((To - From).Length() < 0.01F) && Callback is null && (ShouldContinue is null || !ShouldContinue());
 
     public void Update(GameTime time)

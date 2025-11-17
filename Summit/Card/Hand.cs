@@ -112,8 +112,11 @@ public class Hand
                 _entities[card] = entity;
 
                 // place off-screen initially so MoveTo animates from somewhere visible
+                entity.Sprite?.CenterOrigin();
                 entity.Position = new(Core.GraphicsDevice.Viewport.Width - entity.Width - 10, Core.GraphicsDevice.Viewport.Height - entity.Height - 10);
                 entity.SetSelected(false);
+                entity.Backwards = true;
+                entity.Flip(TimeSpan.FromSeconds(0.25), TimeSpan.FromSeconds(0.3), TimeSpan.FromSeconds(0.25));
 
                 Core.Entities.AddEntity(entity);
             }
@@ -214,7 +217,7 @@ public class Hand
         if (entity is CardEntity cardE && cardE.Data is not null)
         {
             _entities.Remove(cardE.Data);
-            cardE.Backwards = true;
+            cardE.Flip(TimeSpan.FromSeconds(0.1), TimeSpan.Zero, TimeSpan.FromSeconds(0.1));
         }
 
         entity.MoveTo(new Vector2(Core.GraphicsDevice.Viewport.Width - entity.Width - 10, Core.GraphicsDevice.Viewport.Height - entity.Height - 10), time, TimeSpan.Zero, (t) =>

@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace SummitKit.Physics;
 
-public interface ITarget : IUpdating
+public interface ITarget<T> : IUpdating
 {
     bool IsComplete { get; }
-    Vector2 From { get; set; }
-    Vector2 To { get; }
-    Action<ITarget> Callback { get; set; }
+    T From { get; set; }
+    T To { get; }
+    Action<ITarget<T>> Callback { get; set; }
 }

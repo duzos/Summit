@@ -19,8 +19,9 @@ public class Entity : IDraw, IUpdating, IClickable
     private int _cachedWidthInt = -1;
     private int _cachedHeightInt = -1;
 
-    public ITarget MoveTarget { get; protected set; }
-    private ITarget _queued;
+    public ITarget<Vector2> MoveTarget { get; protected set; }
+    private ITarget<Vector2> _queued;
+    public ITarget<Vector2> ScaleTarget { get; protected set; }
     public Vector2 Velocity { get; set; }
     public Vector2 Friction { get; set; } = new Vector2(0.5f, 0.5f);
     public Sprite Sprite
@@ -214,12 +215,22 @@ public class Entity : IDraw, IUpdating, IClickable
             _queued = null;
         }
 
+        if (ScaleTarget is not null)
+        {
+            ScaleTarget.Update(time);
+
+            if (ScaleTarget.IsComplete)
+            {
+                ScaleTarget = null;
+            }
+        }
+
         Sprite?.Update(time);
     }
 
     public virtual void Draw(SpriteBatch batch)
     {
-        Sprite?.Draw(batch, Position);
+        Sprite?.Draw(batch, (Vector2)(Position + Sprite?.Origin * 2));
     }
 
     public virtual void OnClick(MouseState state)
@@ -251,7 +262,7 @@ public class Entity : IDraw, IUpdating, IClickable
         KeepOutsideArea(other.AABB);
     }
 
-    public void MoveTo(ITarget target, bool replaceExisting = true)
+    public void MoveTo(ITarget<Vector2> target, bool replaceExisting = true)
     {
         if (MoveTarget is not null)
         {
@@ -266,10 +277,23 @@ public class Entity : IDraw, IUpdating, IClickable
         MoveTarget = target;
     }
 
-    public void MoveTo(Vector2 to, TimeSpan duration, TimeSpan delay, Action<ITarget> callback = null, bool centered = true, bool replaceExisting = true, InterpolationType type = InterpolationType.Smooth)
+    public void MoveTo(Vector2 to, TimeSpan duration, TimeSpan delay, Action<ITarget<Vector2>> callback = null, bool centered = true, bool replaceExisting = true, InterpolationType type = InterpolationType.Smooth)
     {
-        var target = new InterpolatedTarget(to + (centered ? new Vector2(Width, Height) * 0.5F : Vector2.Zero), Position, (pos) => Position = pos, duration, delay, type, callback);
+        var target = new InterpolatedTarget<Vector2>(to + (centered ? new Vector2(Width, Height) * 0.5F : Vector2.Zero), Position, (pos) => Position = pos, duration, delay, Vector2.Lerp, type, callback);
         MoveTo(target, replaceExisting);
+    }
+
+    public void ScaleTo(ITarget<Vector2> target, bool replaceExisting = true)
+    {
+        if (ScaleTarget is not null && !replaceExisting) return;
+
+        ScaleTarget = target;
+    }
+
+    public void ScaleTo(Vector2 to, TimeSpan duration, TimeSpan delay, Action<ITarget<Vector2>> callback = null, bool replaceExisting = true, InterpolationType type = InterpolationType.Smooth)
+    {
+        var target = new InterpolatedTarget<Vector2>(to, Scale, (scale) => Scale = scale, duration, delay, Vector2.Lerp, type, callback);
+        ScaleTo(target, replaceExisting);
     }
 
     /// <summary>

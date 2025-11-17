@@ -43,6 +43,18 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
         }
     }
 
+    public void Flip(TimeSpan dur, TimeSpan delay, TimeSpan backDur)
+    {
+        if (ScaleTarget is not null) return;
+
+        // Flip the card by scaling to zero width, changing the sprite, then scaling back to full width.
+        Vector2 originalScale = Scale;
+        ScaleTo(originalScale * new Vector2(0, 1), dur, delay, (target) =>
+        {
+            Backwards = !Backwards;
+            ScaleTo(originalScale, backDur, TimeSpan.Zero);
+        }, replaceExisting: true);
+    }
     public override void OnClick(MouseState state)
     {
         base.OnClick(state);

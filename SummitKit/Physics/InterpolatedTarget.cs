@@ -12,17 +12,18 @@ namespace SummitKit.Physics;
 /// <summary>
 /// For moving an object to a target position over a specified duration.
 /// </summary>
-public class InterpolatedTarget(Vector2 to, Vector2 from, Action<Vector2> setter, TimeSpan duration, TimeSpan delay, InterpolationType type = InterpolationType.Smooth, Action<ITarget> callback = null) : ITarget
+public class InterpolatedTarget<T>(T to, T from, Action<T> setter, TimeSpan duration, TimeSpan delay, Func<T, T, float, T> lerp, InterpolationType type = InterpolationType.Smooth, Action<ITarget<T>> callback = null) : ITarget<T>
 {
-    public Vector2 To { get; init; } = to;
-    public Vector2 From { get; set; } = from;
+    public T To { get; init; } = to;
+    public T From { get; set; } = from;
     public TimeSpan Duration { get; init; } = duration + delay;
     public TimeSpan Delay { get; init; } = delay;
-    public Vector2 Position { get; protected set; } = from;
-    public Action<Vector2> SetPosition { get; set; } = setter;
+    public T Position { get; protected set; } = from;
+    public Action<T> SetPosition { get; set; } = setter;
     public InterpolationType Type { get; init; } = type;
-    public Action<ITarget> Callback { get; set; } = callback;
+    public Action<ITarget<T>> Callback { get; set; } = callback;
     private TimeSpan _elapsed = TimeSpan.Zero;
+    private Func<T, T, float, T> Lerp { get; init; } = lerp;
 
     public bool IsComplete => _elapsed >= Duration && Callback is null;
     public void Update(GameTime time)
@@ -43,19 +44,19 @@ public class InterpolatedTarget(Vector2 to, Vector2 from, Action<Vector2> setter
         switch (Type)
         {
             case InterpolationType.Linear:
-                Position = Vector2.Lerp(From, To, t);
+                Position = Lerp(From, To, t);
                 break;
             case InterpolationType.Smooth:
-                Position = Vector2.Lerp(From, To, t * t * (3f - 2f * t));
+                Position = Lerp(From, To, t * t * (3f - 2f * t));
                 break;
             case InterpolationType.EaseIn:
-                Position = Vector2.Lerp(From, To, t * t);
+                Position = Lerp(From, To, t * t);
                 break;
             case InterpolationType.EaseOut:
-                Position = Vector2.Lerp(From, To, t * (2f - t));
+                Position = Lerp(From, To, t * (2f - t));
                 break;
             default:
-                Position = Vector2.Lerp(From, To, t);
+                Position = Lerp(From, To, t);
                 break;
         }
 
