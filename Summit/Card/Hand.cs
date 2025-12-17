@@ -1,4 +1,5 @@
-﻿using SummitKit;
+﻿using Microsoft.Xna.Framework;
+using SummitKit;
 using SummitKit.Physics;
 using System;
 using System.Collections.Generic;
@@ -6,13 +7,12 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Summit.Card;
 
-public class Hand
+public class Hand : IPositioned, IDraggable
 {
     public static readonly Comparison<CardData> SortByValue = (a, b) =>
     {
@@ -37,6 +37,27 @@ public class Hand
     private readonly Dictionary<CardData, CardEntity> _entities;
     private readonly ObservableCollection<CardEntity> _selected;
     private readonly HashSet<CardEntity> _selectedSet;
+    private Vector2 _centrePos;
+
+    public Vector2 Position
+    {
+        get => _centrePos;
+        set
+        {
+            _centrePos = value;
+            UpdatePositions();
+        }
+    }
+
+    public bool Draggable
+    {
+        get => _entities.Values.All(e => e.Draggable);
+        set
+        {
+            foreach (var entity in _entities.Values)
+                entity.Draggable = value;
+        }
+    }
 
     public ObservableCollection<CardEntity> Selected => _selected;
 
@@ -50,6 +71,23 @@ public class Hand
     }
     public IReadOnlyList<CardData> Cards => _cards.AsReadOnly();
     public ImmutableList<CardEntity> Entities => [.. _entities.Values];
+
+    public bool AddCard(CardEntity card)
+    {
+        if (!AddCard(card.Data))
+            return false;
+
+        card.ParentHand = this;
+        _entities[card.Data] = card;
+        return true;
+    }
+
+    public void RemoveCard(CardEntity card)
+    {
+        card.ParentHand = null;
+        RemoveCard(card.Data);
+    }
+
     public bool AddCard(CardData card)
     {
         if (MaxSize > 0 && _cards.Count >= MaxSize)
@@ -60,7 +98,13 @@ public class Hand
     }
     public void RemoveCard(CardData card)
     {
+        if (_entities[card] is not null)
+        {
+            _selected.Remove(_entities[card]);
+        }
+
         _cards.Remove(card);
+        _entities.Remove(card);
     }
     public void Clear()
     {
@@ -107,7 +151,10 @@ public class Hand
 
             if (!_entities.ContainsKey(card))
             {
-                var entity = new CardEntity(card);
+                var entity = new CardEntity(card)
+                {
+                    ParentHand = this
+                };
                 entity.Scale *= 2;
                 _entities[card] = entity;
 
@@ -147,15 +194,16 @@ public class Hand
         if (_cards.Count > 1)
             totalWidth += spacing * (_cards.Count - 1);
 
-        float centerX = Core.GraphicsDevice.Viewport.Width / 2f - (widths.Length > 0 ? widths[0] / 2 : 0);
+        float centerX = Position.X - (widths.Length > 0 ? widths[0] / 2 : 0);
         float startX = centerX - (totalWidth / 2f);
-        float centerY = Core.GraphicsDevice.Viewport.Height / 2f;
+        float centerY = Position.Y;
 
         Vector2 pos = new(startX, centerY);
 
         for (int i = 0; i < _cards.Count; i++)
         {
             var entity = _entities[_cards[i]];
+            entity.ParentHand = this;
 
             if (!entity.IsBeingDragged) {
                 entity.MoveTo(pos - new Vector2(0, entity.IsSelected ? 10 : 0), indexToSpeed.Invoke(i), indexToSpeed.Invoke(i));

@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Summit.Card;
+using Summit.State;
 using SummitKit;
 using SummitKit.Graphics;
 using SummitKit.Input;
@@ -16,8 +17,7 @@ namespace Summit
     public class MainGame : Core
     {
         public static TextureAtlas Atlas { get; private set; }
-        public static Deck MainDeck { get; private set; }
-        public static Hand MainHand { get; private set; }
+        public static GameState State { get; private set; }
 
         private SpriteFont _font;
         public MainGame() : base("Summit", 1280, 720, false)
@@ -35,16 +35,14 @@ namespace Summit
             base.LoadContent();
 
             Atlas = TextureAtlas.FromFile(Content, "assets/atlas-definition.xml");
-            MainDeck = new();
-            MainDeck.Shuffle();
-            MainHand = new();
+            State = new();
 
-            var button = new Button(Atlas.CreateSprite("blue-back"), but =>
+            var button = new Button(Atlas.CreateSprite("red-back"), but =>
             {
-                MainDeck.AddAll(MainHand.Selected);
-                MainHand.DiscardSelected();
-                MainDeck.Deal(MainHand);
-                MainHand.SpawnCards();
+                State.MainDeck.AddAll(State.MainHand.Selected);
+                State.MainHand.DiscardSelected();
+                State.Deal();
+                State.MainHand.SpawnCards();
             });
             button.Shadow.Enabled = true;
             // bottom right corner
@@ -53,9 +51,20 @@ namespace Summit
 
             Entities.AddEntity(button);
 
+            button = new(Atlas.CreateSprite("blue-back"), but =>
+            {
+                State.PlaySelected();
+                State.Deal();
+            });
+            button.Shadow.Enabled = true;
+            button.Scale *= 2F;
+            // next to the other button
+            button.Position = new Vector2(1280 - button.Width - button.Width - 20, 720 - button.Height - 10);
+            Entities.AddEntity(button);
+
             button = new Button(Atlas.CreateSprite("rank-btn"), but =>
             {
-                MainHand.SortCards(Hand.SortByValue);
+                State.MainHand.SortCards(Hand.SortByValue);
             });
             button.Scale *= 2F;
             button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) - button.Width - 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
@@ -63,7 +72,7 @@ namespace Summit
 
             button = new Button(Atlas.CreateSprite("suit-btn"), but =>
             {
-                MainHand.SortCards(Hand.SortBySuit);
+                State.MainHand.SortCards(Hand.SortBySuit);
             });
             button.Scale *= 2F;
             button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
@@ -85,13 +94,11 @@ namespace Summit
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.White);
-
-
-            // Begin the sprite batch to prepare for rendering.
             SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
             base.Draw(gameTime);
-            string score = MainHand.TotalValue().ToString();
+
+            string score = State.MainHand.TotalValue().ToString();
             SpriteBatch.DrawString(
                 _font,                   // font
                 score,     // text
@@ -106,7 +113,7 @@ namespace Summit
 
             SpriteBatch.DrawString(
                 _font,
-                Entities.DraggedEntity is not CardEntity e ? "" : MainHand.Cards.ToList().IndexOf(e.Data).ToString(),
+                Entities.DraggedEntity is not CardEntity e ? "" : State.MainHand.Cards.ToList().IndexOf(e.Data).ToString(),
                 new(10, 10),
                 Color.Black,
                 0.0F,

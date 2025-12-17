@@ -11,6 +11,7 @@ public class VelocityTarget(Func<Vector2> to, Func<Vector2> currentPosition, Fun
     public float TargetSpeed { get => target * 100; }
     public float Acceleration { get => acceleration * 1000; }
     public float SlowRadius { get; set; } = slowRadius;
+    public float StopDistance { get; set; } = 1.0F;
 
     private readonly Func<Vector2> GetVelocity = getter;
     private readonly Action<Vector2> SetVelocity = setter;
@@ -24,7 +25,7 @@ public class VelocityTarget(Func<Vector2> to, Func<Vector2> currentPosition, Fun
     public Vector2 From { get => GetFrom(); set { } }
     public Vector2 To { get => GetTo(); }
     public Action<ITarget<Vector2>> Callback { get; set; } = null;
-    public bool IsComplete => ((To - From).Length() < 0.01F) && Callback is null && (ShouldContinue is null || !ShouldContinue());
+    public bool IsComplete => (Vector2.Distance(To, From) < StopDistance) && (ShouldContinue is not null && !ShouldContinue());
 
     public void Update(GameTime time)
     {
@@ -33,7 +34,7 @@ public class VelocityTarget(Func<Vector2> to, Func<Vector2> currentPosition, Fun
         float distance = direction.Length();
 
         // If we're essentially at the target, stop and invoke the callback (if any).
-        if (distance < 0.01f)
+        if (distance < StopDistance)
         {
             if (Callback is not null)
             {
@@ -55,7 +56,7 @@ public class VelocityTarget(Func<Vector2> to, Func<Vector2> currentPosition, Fun
         // Reduce desired speed as we approach the target so we slow smoothly.
         // slowRadius determines how far out we start slowing. Use TargetSpeed as a base.
         float slowRadius = Math.Max(SlowRadius, 1f);
-        float desiredSpeed = (distance < slowRadius) ? SlowRadius * (distance / slowRadius) : TargetSpeed;
+        float desiredSpeed = (distance < slowRadius) ? TargetSpeed * (distance / slowRadius) : TargetSpeed;
         Vector2 desiredVelocity = direction * desiredSpeed;
 
         // Compute steering (desired change in velocity) and limit it by Acceleration * dt
@@ -74,6 +75,21 @@ public class VelocityTarget(Func<Vector2> to, Func<Vector2> currentPosition, Fun
         if (newSpeed > TargetSpeed)
         {
             newVelocity = Vector2.Normalize(newVelocity) * TargetSpeed;
+        }
+
+        float forwardDot = Vector2.Dot(newVelocity, direction);
+        if (distance < slowRadius && forwardDot <= 0f)
+        {
+            // Snap to zero velocity and complete
+            if (Callback is not null)
+            {
+                Callback(this);
+                Callback = null;
+            }
+            newVelocity.Normalize();
+            newVelocity *= 0.1F;
+            SetVelocity(newVelocity);
+            return;
         }
 
         SetVelocity(newVelocity);

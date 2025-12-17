@@ -11,7 +11,7 @@ namespace SummitKit.Physics;
 /// <summary>
 /// Base class for all entities in the physics system.
 /// </summary>
-public class Entity : IDraw, IUpdating, IClickable
+public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
 {
     private Sprite _sprite;
     private Rectangle _aabb;
@@ -23,7 +23,7 @@ public class Entity : IDraw, IUpdating, IClickable
     private ITarget<Vector2> _queued;
     public ITarget<Vector2> ScaleTarget { get; protected set; }
     public Vector2 Velocity { get; set; }
-    public Vector2 Friction { get; set; } = new Vector2(0.5f, 0.5f);
+    public Vector2 Friction { get; set; } = new Vector2(0.98f, 0.98f);
     public Sprite Sprite
     {
         get => _sprite;
@@ -75,6 +75,17 @@ public class Entity : IDraw, IUpdating, IClickable
     public bool Draggable { get; set; } = true;
     public bool DragFollowsCursor { get; set; } = true;
     public Shadow Shadow => Sprite?.Shadow;
+    public float Rotation 
+    {
+        get => Sprite?.Rotation ?? 0f;
+        set
+        {
+            if (Sprite != null)
+            {
+                Sprite.Rotation = value;
+            }
+        }
+    }
     public Entity(Sprite sprite)
     {
         Sprite = sprite;
@@ -195,14 +206,30 @@ public class Entity : IDraw, IUpdating, IClickable
 
     public virtual void Update(GameTime time)
     {
-        // Apply velocity and multiplicative friction
-        Position += Velocity * (float)time.ElapsedGameTime.TotalSeconds;
-        Velocity *= Friction;
+        // Use frame delta
+        float dt = (float)time.ElapsedGameTime.TotalSeconds;
+        if (dt <= 0f) dt = 1f / 60f;
+
+        // Apply velocity (frame-rate independent)
+        Position += Velocity * dt;
+
+        // Apply multiplicative friction as a per-second multiplier converted to a per-frame multiplier.
+        // This avoids the very-large-per-frame damping that causes jitter/oscillation.
+        Velocity *= new Vector2(MathF.Pow(Friction.X, dt), MathF.Pow(Friction.Y, dt));
 
         if (MoveTarget is not null)
-        {
+        {   
             MoveTarget.Update(time);
             //Position = MoveTarget.Position;
+
+
+            const float snapDistance = 1f;
+            Vector2 to = MoveTarget.To;
+            if (Vector2.Distance(Position, to) < snapDistance)
+            {
+                Position = to;
+                Velocity = Vector2.Zero;
+            }
 
             if (MoveTarget.IsComplete)
             {
@@ -253,7 +280,7 @@ public class Entity : IDraw, IUpdating, IClickable
     {
         if (Draggable && DragFollowsCursor && MoveTarget is null)
         {
-            MoveTo(new VelocityTarget(() => Core.Input.Mouse.CurrentState.Position.ToVector2() - dragOffset, this, null, () => IsBeingDragged, 50, 1000, Width), false);
+            MoveTo(new VelocityTarget(() => Core.Input.Mouse.CurrentState.Position.ToVector2() - dragOffset, this, null, () => IsBeingDragged, 10, 50, Width), false);
         }
     }
 

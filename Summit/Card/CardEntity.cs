@@ -13,16 +13,19 @@ namespace Summit.Card;
 public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas))
 {
     public CardData Data { get; init; } = data;
+    public Hand ParentHand { get; set; }
 
-    public bool IsSelected => MainGame.MainHand.Selected.Contains(this);
+    public bool IsSelected => ParentHand.Selected.Contains(this);
     public void SetSelected(bool val)
     {
-        if (val && !IsSelected) MainGame.MainHand.Selected.Add(this);
-        else if (!val) MainGame.MainHand.Selected.Remove(this);
+        if (ParentHand is null || !Draggable || !ParentHand.Draggable) return;
+
+        if (val && !IsSelected) ParentHand.Selected.Add(this);
+        else if (!val) ParentHand.Selected.Remove(this);
 
         if (Shadow is not null)
         {
-            Shadow.Enabled = MainGame.MainHand.Selected.Contains(this);
+            Shadow.Enabled = ParentHand.Selected.Contains(this);
         }
     }
 
@@ -55,11 +58,21 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
             ScaleTo(originalScale, backDur, TimeSpan.Zero);
         }, replaceExisting: true);
     }
+
+    public override void Update(GameTime time)
+    {
+        base.Update(time);
+
+        // tilt towards velocity
+        float targetRotation = (Velocity.X / 100) * 0.05f;
+        Rotation = MathHelper.Lerp(Rotation, targetRotation, 0.1f);
+    }
+
     public override void OnClick(MouseState state)
     {
         base.OnClick(state);
 
-        if (MoveTarget is not null || !(MainGame.MainHand.Entities.Contains(this)) || IsBeingDragged) return;
+        if (MoveTarget is not null || !(ParentHand.Entities.Contains(this)) || IsBeingDragged) return;
 
         if (IsSelected)
         {
@@ -74,8 +87,8 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
     {
         base.OnDrag(state, dragOffset);
 
-        MainGame.MainHand.UpdateIndex(this);
-        if (MoveTarget is not null || !(MainGame.MainHand.Entities.Contains(this))) return;
+        ParentHand.UpdateIndex(this);
+        if (MoveTarget is not null || !(ParentHand.Entities.Contains(this))) return;
         
         SetSelected(false);
     }
@@ -84,13 +97,13 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
     {
         base.OnRelease(state, wasBeingDragged);
 
-        if (!(MainGame.MainHand.Entities.Contains(this))) return;
+        if (!(ParentHand.Entities.Contains(this))) return;
 
         if (wasBeingDragged) {
             Velocity = Vector2.Zero;
             MoveTarget = null;
-            MainGame.MainHand.UpdateIndex(this);
-            MainGame.MainHand.UpdatePositions();
+            ParentHand.UpdateIndex(this);
+            ParentHand.UpdatePositions();
         }
     }
 }
