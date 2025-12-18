@@ -186,6 +186,9 @@ public class Hand : IPositioned, IDraggable
         float[] widths = new float[_cards.Count];
         for (int i = 0; i < _cards.Count; i++)
         {
+            if (_entities.ContainsKey(_cards[i]) == false)
+                continue;
+
             var entity = _entities[_cards[i]];
             widths[i] = entity.Width;
             totalWidth += widths[i];
@@ -202,11 +205,14 @@ public class Hand : IPositioned, IDraggable
 
         for (int i = 0; i < _cards.Count; i++)
         {
+            if (_entities.ContainsKey(_cards[i]) == false)
+                continue;
+
             var entity = _entities[_cards[i]];
             entity.ParentHand = this;
 
             if (!entity.IsBeingDragged) {
-                entity.MoveTo(pos - new Vector2(0, entity.IsSelected ? 10 : 0), indexToSpeed.Invoke(i), indexToSpeed.Invoke(i));
+                entity.MoveTo(pos - new Vector2(0, entity.IsSelected ? 10 : 0), indexToSpeed.Invoke(i), indexToSpeed.Invoke(i), replaceExisting: false);
             }
             pos.X += widths[i] + spacing;
         }
@@ -240,27 +246,44 @@ public class Hand : IPositioned, IDraggable
     {
         foreach (var entity in _entities.Values)
         {
-            MoveAndDespawn(entity, TimeSpan.FromSeconds(0.5));
+            MoveAndDespawn(entity, TimeSpan.FromSeconds(0.5), TimeSpan.Zero);
         }
         _entities.Clear();
     }
 
     public void DiscardSelected()
     {
-        foreach (var selected in _selected)
-        {
-            MoveAndDespawn(selected, TimeSpan.FromSeconds(0.25));
-            _cards.Remove(selected.Data);
-        }
+        Discard(_selected);
 
         _selected.Clear();
+    }
+
+    public void DiscardAll()
+    {
+        Discard(_entities.Values);
+        _cards.Clear();
+        _selected.Clear();
+    }
+
+    public void Discard(IEnumerable<CardEntity> cards)
+    {
+        int count = 0;
+        // sort by their distance from the right side of the screen, closest 
+        var entitiesByRightDistance = cards
+            .OrderBy(e => Core.GraphicsDevice.Viewport.Width - (e.Position.X + e.Width / 2))
+            .ToList();
+        foreach (var entity in entitiesByRightDistance)
+        {
+            count++;
+            MoveAndDespawn(entity, TimeSpan.FromSeconds(0.75F), TimeSpan.FromSeconds(count * 0.05F));
+        }
     }
 
     /// <summary>
     /// moves the entity off-screen and despawns it
     /// </summary>
     /// <param name="entity"></param>
-    private void MoveAndDespawn(Entity entity, TimeSpan time)
+    public void MoveAndDespawn(Entity entity, TimeSpan time, TimeSpan delay)
     {
         if (entity is CardEntity cardE && cardE.Data is not null)
         {
@@ -268,9 +291,12 @@ public class Hand : IPositioned, IDraggable
             cardE.Flip(TimeSpan.FromSeconds(0.1), TimeSpan.Zero, TimeSpan.FromSeconds(0.1));
         }
 
-        entity.MoveTo(new Vector2(Core.GraphicsDevice.Viewport.Width - entity.Width - 10, Core.GraphicsDevice.Viewport.Height - entity.Height - 10), time, TimeSpan.Zero, (t) =>
+        // corner position off-screen \/
+        // new Vector2(Core.GraphicsDevice.Viewport.Width - entity.Width - 10, Core.GraphicsDevice.Viewport.Height - entity.Height - 10)
+        entity.CollidesWithWindowEdges = false;
+        entity.MoveTo(new(Core.GraphicsDevice.Viewport.Width + entity.Width, entity.Position.Y), time, delay, (t) =>
         {
-            Core.Entities.RemoveEntity(entity);
+            entity.Remove();
         }, false);
     }
 

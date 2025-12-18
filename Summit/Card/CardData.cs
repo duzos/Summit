@@ -56,11 +56,20 @@ public class CardData
 
     public CardType Type => _type;
 
+    public Back BackColour => Suit switch
+    {
+        CardSuit.Hearts => Back.Red,
+        CardSuit.Diamonds => Back.Red,
+        CardSuit.Clubs => Back.Blue,
+        CardSuit.Spades => Back.Blue,
+        _ => throw new ArgumentOutOfRangeException()
+    };
+
     public Sprite CreateSprite(TextureAtlas atlas)
     {
         if (Backwards)
         {
-            return atlas.CreateSprite("blue-back");
+            return atlas.CreateSprite(BackColour.ToString().ToLower() + "-back");
         }
 
         string rankString = Type switch
@@ -80,5 +89,11 @@ public class CardData
     public float Apply(float total)
     {
         return Suit.Apply(total, Math.Min(Rank, 10));
+    }
+
+    public enum Back
+    {
+        Red,
+        Blue
     }
 }

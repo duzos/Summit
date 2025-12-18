@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using SummitKit.Input;
 using SummitKit.Physics;
+using SummitKit.Util;
 using System;
 
 namespace SummitKit;
@@ -43,6 +44,8 @@ public class Core : Game
     public static InputManager Input { get; private set; }
 
     public static EntityManager Entities { get; private set; }
+
+    public static Scheduler Scheduler { get; } = new Scheduler();
 
     /// <summary>
     /// Gets or Sets a value that indicates if the game should exit when the esc key on the keyboard is pressed.
@@ -111,6 +114,8 @@ public class Core : Game
 
     protected override void Update(GameTime gameTime)
     {
+        Scheduler.Update(gameTime);
+
         // Update the input manager.
         Input.Update(gameTime);
         Entities.CheckClicks(Input.Mouse);

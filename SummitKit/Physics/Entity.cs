@@ -346,4 +346,9 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
             _cachedHeightInt = curH;
         }
     }
+
+    public void Remove()
+    {
+        Core.Entities.RemoveEntity(this);
+    }
 }

@@ -39,7 +39,7 @@ namespace Summit
 
             var button = new Button(Atlas.CreateSprite("red-back"), but =>
             {
-                State.MainDeck.AddAll(State.MainHand.Selected);
+                State.DiscardDeck.AddAll(State.MainHand.Selected);
                 State.MainHand.DiscardSelected();
                 State.Deal();
                 State.MainHand.SpawnCards();
@@ -102,10 +102,22 @@ namespace Summit
             SpriteBatch.DrawString(
                 _font,                   // font
                 score,     // text
-                new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2), GraphicsDevice.PresentationParameters.BackBufferHeight / 2 - 100),           // position
+                new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2), GraphicsDevice.PresentationParameters.BackBufferHeight - 100),           // position
                 Color.Black,             // color
                 0.0F,
                 _font.MeasureString(score) * 0.5F,
+                5.0F,
+                SpriteEffects.None,
+                0.0f
+            );
+
+            SpriteBatch.DrawString(
+                _font,                   // font
+                State.Score.ToString(),     // text
+                new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2), 50),           // position
+                Color.Black,             // color
+                0.0F,
+                _font.MeasureString(State.Score.ToString()) * 0.5F,
                 5.0F,
                 SpriteEffects.None,
                 0.0f

@@ -72,7 +72,7 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
     {
         base.OnClick(state);
 
-        if (MoveTarget is not null || !(ParentHand.Entities.Contains(this)) || IsBeingDragged) return;
+        if (MoveTarget is not null || ParentHand is null || !(ParentHand.Entities.Contains(this)) || IsBeingDragged) return;
 
         if (IsSelected)
         {
