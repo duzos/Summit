@@ -28,6 +28,8 @@ namespace Summit
         protected override void Initialize()
         {
             base.Initialize();
+
+            State.NextRound();
         }
 
         protected override void LoadContent()
@@ -39,15 +41,12 @@ namespace Summit
 
             var button = new Button(Atlas.CreateSprite("red-back"), but =>
             {
-                State.DiscardDeck.AddAll(State.MainHand.Selected);
-                State.MainHand.DiscardSelected();
-                State.Deal();
-                State.MainHand.SpawnCards();
+                State.DiscardSelected();
             });
             button.Shadow.Enabled = true;
             // bottom right corner
             button.Scale *= 2F;
-            button.Position = new Vector2(1280 - button.Width - 10, 720 - button.Height - 10);
+            button.Position = new (GraphicsDevice.PresentationParameters.BackBufferWidth - button.Width - 10, GraphicsDevice.PresentationParameters.BackBufferHeight - button.Height - 10);
 
             Entities.AddEntity(button);
 
@@ -98,7 +97,7 @@ namespace Summit
 
             base.Draw(gameTime);
 
-            string score = State.MainHand.TotalValue().ToString();
+            string score = State.Score.ToString();
             SpriteBatch.DrawString(
                 _font,                   // font
                 score,     // text
@@ -113,11 +112,11 @@ namespace Summit
 
             SpriteBatch.DrawString(
                 _font,                   // font
-                State.Score.ToString(),     // text
+                State.TargetScore.ToString(),     // text
                 new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2), 50),           // position
                 Color.Black,             // color
                 0.0F,
-                _font.MeasureString(State.Score.ToString()) * 0.5F,
+                _font.MeasureString(State.TargetScore.ToString()) * 0.5F,
                 5.0F,
                 SpriteEffects.None,
                 0.0f
@@ -134,6 +133,34 @@ namespace Summit
                 SpriteEffects.None,
                 0.0f
                 );
+
+            // draw remaining hands & discards on top of respective buttons
+            string txt = State.RemainingHands.ToString();
+            SpriteBatch.DrawString(
+                _font,                   // font
+                txt,     // text
+                new(GraphicsDevice.PresentationParameters.BackBufferWidth - 140, GraphicsDevice.PresentationParameters.BackBufferHeight - 50),           // position
+                Color.White,             // color
+                0.0F,
+                _font.MeasureString(txt) * 0.5F,
+                2.5F,
+                SpriteEffects.None,
+                0.0f
+            );
+
+            txt = State.RemainingDiscards.ToString();
+            SpriteBatch.DrawString(
+                _font,
+                txt,
+                new(GraphicsDevice.PresentationParameters.BackBufferWidth - 50, GraphicsDevice.PresentationParameters.BackBufferHeight - 50),
+                Color.White,
+                0.0F,
+                _font.MeasureString(txt) * 0.5F,
+                2.5F,
+                SpriteEffects.None,
+                0.0F
+            );
+
             SpriteBatch.End();
         }
     }

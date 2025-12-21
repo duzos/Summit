@@ -52,9 +52,10 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
 
         // Flip the card by scaling to zero width, changing the sprite, then scaling back to full width.
         Vector2 originalScale = Scale;
+        bool val = Backwards;
         ScaleTo(originalScale * new Vector2(0, 1), dur, delay, (target) =>
         {
-            Backwards = !Backwards;
+            Backwards = !val;
             ScaleTo(originalScale, backDur, TimeSpan.Zero);
         }, replaceExisting: true);
     }

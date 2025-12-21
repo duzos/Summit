@@ -64,11 +64,6 @@ public class EntityManager : IUpdating, IDraw
         if (input.WasButtonJustPressed(MouseButton.Left))
         {
             var entity = GetEntityAtPosition(input.Position.ToVector2());
-            if (entity is not null && entity.Draggable)
-            {
-                _drag.Possible = entity;
-                _drag.PossibleOffset = input.Position.ToVector2() - entity.Position;
-            }
             entity?.OnClick(input.CurrentState);
         }
 
@@ -85,6 +80,12 @@ public class EntityManager : IUpdating, IDraw
 
         if (input.IsButtonDown(MouseButton.Left))
         {
+            if (hoverEntity is not null && hoverEntity.Draggable)
+            {
+                _drag.Possible = hoverEntity;
+                _drag.PossibleOffset = input.Position.ToVector2() - hoverEntity.Position;
+            }
+
             DraggedEntity?.OnDrag(input.CurrentState, _drag.DragOffset);
         }
     }
