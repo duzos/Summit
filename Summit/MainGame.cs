@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Summit.Card;
+using Summit.Command;
 using Summit.State;
 using SummitKit;
 using SummitKit.Graphics;
@@ -10,6 +11,7 @@ using SummitKit.Physics;
 using System;
 using System.Collections;
 using System.Linq;
+using System.Reflection;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Summit
@@ -28,6 +30,8 @@ namespace Summit
         protected override void Initialize()
         {
             base.Initialize();
+
+            Console.Commands.RegisterNamespace("Summit.Command", assembly: typeof(SetScoreCommand).Assembly);
 
             State.NextRound();
         }
@@ -64,6 +68,7 @@ namespace Summit
             button = new Button(Atlas.CreateSprite("rank-btn"), but =>
             {
                 State.MainHand.SortCards(Hand.SortByValue);
+                State.LastSort = Hand.SortByValue;
             });
             button.Scale *= 2F;
             button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) - button.Width - 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
@@ -72,13 +77,14 @@ namespace Summit
             button = new Button(Atlas.CreateSprite("suit-btn"), but =>
             {
                 State.MainHand.SortCards(Hand.SortBySuit);
+                State.LastSort = Hand.SortBySuit;
             });
             button.Scale *= 2F;
             button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
 
             Entities.AddEntity(button);
 
-            _font = Content.Load<SpriteFont>("assets/primary");
+            _font = Content.Load<SpriteFont>("assets/balatro");
         }
 
         protected override void Update(GameTime gameTime)
@@ -139,7 +145,7 @@ namespace Summit
             SpriteBatch.DrawString(
                 _font,                   // font
                 txt,     // text
-                new(GraphicsDevice.PresentationParameters.BackBufferWidth - 140, GraphicsDevice.PresentationParameters.BackBufferHeight - 50),           // position
+                new(GraphicsDevice.PresentationParameters.BackBufferWidth - 130, GraphicsDevice.PresentationParameters.BackBufferHeight - 58),           // position
                 Color.White,             // color
                 0.0F,
                 _font.MeasureString(txt) * 0.5F,
@@ -152,13 +158,26 @@ namespace Summit
             SpriteBatch.DrawString(
                 _font,
                 txt,
-                new(GraphicsDevice.PresentationParameters.BackBufferWidth - 50, GraphicsDevice.PresentationParameters.BackBufferHeight - 50),
+                new(GraphicsDevice.PresentationParameters.BackBufferWidth - 40, GraphicsDevice.PresentationParameters.BackBufferHeight - 58),
                 Color.White,
                 0.0F,
                 _font.MeasureString(txt) * 0.5F,
                 2.5F,
                 SpriteEffects.None,
                 0.0F
+            );
+            // remaining cards in deck count
+            txt = (State.MainDeck.Count.ToString()) + "/" + (State.MainDeck.Count + State.DiscardDeck.Count + State.MainHand.Cards.Count).ToString();
+            SpriteBatch.DrawString(
+                _font,                   // font
+                txt,     // text
+                new(GraphicsDevice.PresentationParameters.BackBufferWidth - 50, GraphicsDevice.PresentationParameters.BackBufferHeight - 150),           // position
+                Color.Black,             // color
+                0.0F,
+                _font.MeasureString(txt) * 0.5F,
+                1F,
+                SpriteEffects.None,
+                0.0f
             );
 
             SpriteBatch.End();

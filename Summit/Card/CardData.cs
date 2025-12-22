@@ -86,6 +86,18 @@ public class CardData
         return atlas.CreateSprite(regionName);
     }
 
+    public string GetName()
+    {
+        string rankString = Type switch
+        {
+            CardType.Ace => "Ace",
+            CardType.Jack => "Jack",
+            CardType.Queen => "Queen",
+            CardType.King => "King",
+            _ => Rank.ToString()
+        };
+        return $"{rankString} of {Suit}";
+    }
     public float Apply(float total)
     {
         return Suit.Apply(total, Math.Min(Rank, 10));

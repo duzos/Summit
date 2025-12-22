@@ -23,6 +23,16 @@ public class Deck(IEnumerable<CardData> cards)
 
     }
 
+    public static Deck Full()
+    {
+        return new();
+    }
+
+    public static Deck Empty()
+    {
+        return new([]);
+    }
+
     public void Shuffle(Random? rng = null)
     {
         rng ??= new Random();
@@ -56,6 +66,21 @@ public class Deck(IEnumerable<CardData> cards)
             Cards.Enqueue(card.Data);
         }
     }
+
+    public void AddAllToTop(IEnumerable<CardData> cards)
+    {
+        var cardList = Cards.ToList();
+        Cards.Clear();
+        foreach (var card in cards)
+        {
+            Cards.Enqueue(card);
+        }
+        foreach (var card in cardList)
+        {
+            Cards.Enqueue(card);
+        }
+    }
+
     public void Deal(Hand hand)
     {
         if (Cards.Count == 0) return;

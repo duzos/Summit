@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using SummitKit.Command;
 using SummitKit.Input;
 using SummitKit.Physics;
 using SummitKit.Util;
@@ -46,6 +47,7 @@ public class Core : Game
     public static EntityManager Entities { get; private set; }
 
     public static Scheduler Scheduler { get; } = new Scheduler();
+    public static CoreConsole Console { get; } = new CoreConsole();
 
     /// <summary>
     /// Gets or Sets a value that indicates if the game should exit when the esc key on the keyboard is pressed.
@@ -94,6 +96,8 @@ public class Core : Game
         // Mouse is visible by default.
         IsMouseVisible = true;
         ExitOnEscape = true;
+
+        Window.TextInput += Console.OnTextInput;
     }
 
     protected override void Initialize()
@@ -109,12 +113,20 @@ public class Core : Game
 
         Input = new InputManager();
 
+        Console.Commands.Register(new HelpCommand(Console.Commands));
         base.Initialize();
     }
 
+    protected override void LoadContent()
+    {
+        base.LoadContent();
+
+        Console.LoadContent();
+    }
     protected override void Update(GameTime gameTime)
     {
         Scheduler.Update(gameTime);
+        Console.Update(gameTime);
 
         // Update the input manager.
         Input.Update(gameTime);
@@ -134,5 +146,6 @@ public class Core : Game
         base.Draw(gameTime);
     
         Entities.Draw(SpriteBatch);
+        Console.Draw(SpriteBatch);
     }
 }

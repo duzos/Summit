@@ -88,9 +88,9 @@ public class Hand : IPositioned, IDraggable
         RemoveCard(card.Data);
     }
 
-    public bool AddCard(CardData card)
+    public bool AddCard(CardData card, bool force = false)
     {
-        if (MaxSize > 0 && _cards.Count >= MaxSize)
+        if (MaxSize > 0 && _cards.Count >= MaxSize && !force)
             return false;
 
         _cards.Add(card);
@@ -126,11 +126,12 @@ public class Hand : IPositioned, IDraggable
         return _selected.Count >= SelectedMaxSize;
     }
 
-    public float TotalValue()
+    public float TotalValue(bool selectedOnly = true)
     {
         float total = 0f;
 
-        foreach (var cardEntity in _selected)
+        List<CardEntity> list = (selectedOnly ? Selected.ToList() : _entities.Values.ToList());
+        foreach (var cardEntity in list)
         {
             total = cardEntity.Data.Apply(total);
         }
@@ -169,13 +170,14 @@ public class Hand : IPositioned, IDraggable
             }
         }
 
-        UpdatePositions(i => TimeSpan.FromSeconds(0.1 + (0.05 * i)), i => TimeSpan.Zero);
+        SortCards(MainGame.State.LastSort);
+        //UpdatePositions(i => TimeSpan.FromSeconds(0.1 + (0.05 * i)), i => TimeSpan.Zero);
     }
 
     public void SortCards(Comparison<CardData> comparison)
     {
         _cards.Sort(comparison);
-        UpdatePositions(i => TimeSpan.FromSeconds(0.1 + (0.05 * i)), i => TimeSpan.Zero);
+        UpdatePositions(i => TimeSpan.FromSeconds(0.25/* + (0.05 * i)*/), i => TimeSpan.Zero);
     }
 
     public void UpdatePositions(Func<int, TimeSpan> indexToSpeed, Func<int, TimeSpan> indexToDelay)
@@ -274,6 +276,8 @@ public class Hand : IPositioned, IDraggable
             .ToList();
         foreach (var entity in entitiesByRightDistance)
         {
+            _cards.Remove(entity.Data);
+
             count++;
             MoveAndDespawn(entity, TimeSpan.FromSeconds(0.75F), TimeSpan.FromSeconds(count * 0.05F));
         }
