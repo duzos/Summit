@@ -26,6 +26,7 @@ namespace Summit
         public static GameState State { get; private set; }
 
         private SpriteFont _font;
+        private Effect _background;
         public MainGame() : base("Summit", 1280, 720, false)
         {
 
@@ -97,6 +98,7 @@ namespace Summit
             Entities.AddEntity(button);
 
             _font = Content.Load<SpriteFont>("assets/balatro");
+            _background = Content.Load<Effect>("assets/Background");
         }
 
         protected override void Update(GameTime gameTime)
@@ -111,16 +113,37 @@ namespace Summit
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.White);
+
+            float totalTime = (float)gameTime.TotalGameTime.TotalSeconds;
+            // Set animation parameters
+            _background.Parameters["time"]?.SetValue(totalTime);
+            _background.Parameters["spin_time"]?.SetValue(totalTime * 0.1f); // can tweak speed
+            _background.Parameters["spin_amount"].SetValue(1.0f);           // full swirl
+            _background.Parameters["contrast"].SetValue(0.2f);             // default contrast
+
+            // Set colors (RGBA)
+            _background.Parameters["colour1"].SetValue(new Vector4(0.05f, 0.4f, 0.05f, 1f)); // dark felt
+            _background.Parameters["colour2"].SetValue(new Vector4(0.0f, 0.6f, 0.0f, 1f));  // lighter green
+            _background.Parameters["colour3"].SetValue(new Vector4(0.0f, 0.3f, 0.0f, 1f));  // subtle highlight
+
+            // Pass screen size
+            _background.Parameters["screenSize"].SetValue(new Vector2(
+                GraphicsDevice.Viewport.Width,
+                GraphicsDevice.Viewport.Height
+            ));
+            SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, _background);
+            SpriteBatch.Draw(new Texture2D(GraphicsDevice, 1, 1), GraphicsDevice.Viewport.Bounds, Color.White);
+            SpriteBatch.End();
+
             SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
 
             base.Draw(gameTime);
-
             string score = State.Score.ToString();
             SpriteBatch.DrawString(
                 _font,                   // font
                 score,     // text
                 new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2), GraphicsDevice.PresentationParameters.BackBufferHeight - 100),           // position
-                Color.Black,             // color
+                Color.White,             // color
                 0.0F,
                 _font.MeasureString(score) * 0.5F,
                 5.0F,
@@ -132,7 +155,7 @@ namespace Summit
                 _font,                   // font
                 State.TargetScore.ToString(),     // text
                 new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2), 50),           // position
-                Color.Black,             // color
+                Color.White,             // color
                 0.0F,
                 _font.MeasureString(State.TargetScore.ToString()) * 0.5F,
                 5.0F,
@@ -144,7 +167,7 @@ namespace Summit
                 _font,
                 Entities.DraggedEntity is not CardEntity e ? "" : State.MainHand.Cards.ToList().IndexOf(e.Data).ToString(),
                 new(10, 10),
-                Color.Black,
+                Color.White,
                 0.0F,
                 Vector2.Zero,
                 1.0F,
@@ -184,7 +207,7 @@ namespace Summit
                 _font,                   // font
                 txt,     // text
                 new(GraphicsDevice.PresentationParameters.BackBufferWidth - 50, GraphicsDevice.PresentationParameters.BackBufferHeight - 150),           // position
-                Color.Black,             // color
+                Color.White,             // color
                 0.0F,
                 _font.MeasureString(txt) * 0.5F,
                 1F,

@@ -28,6 +28,12 @@
 /processorParam:TextureFormat=Color
 /build:assets/atlas.png
 
+#begin assets/Background.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:assets/Background.fx
+
 #begin assets/primary.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor
