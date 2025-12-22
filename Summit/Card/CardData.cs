@@ -3,21 +3,26 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Summit.Card;
 
 public class CardData
 {
+    [JsonIgnore]
     private CardType _type;
     private int _rank;
     public CardSuit Suit { get; init; }
+    [JsonIgnore]
     public bool Backwards { get; set; }
 
-    public CardData(int rank, CardSuit suit)
+    [JsonConstructor]
+    public CardData(int rank, CardSuit suit, bool backwards = false)
     {
         Suit = suit;
-        Rank = Math.Clamp(rank, 1, 13);
+        Rank = Math.Clamp(rank, 1, 14);
+        Backwards = backwards;
     }
 
     public CardData(CardType type, CardSuit suit) : this(
@@ -27,6 +32,7 @@ public class CardData
             CardType.Jack => 11,
             CardType.Queen => 12,
             CardType.King => 13,
+            CardType.Bracket => 14,
             _ => throw new ArgumentException("Invalid rank for CardData constructor")
         },
         suit)
@@ -46,16 +52,19 @@ public class CardData
                 11 => CardType.Jack,
                 12 => CardType.Queen,
                 13 => CardType.King,
+                14 => CardType.Bracket,
                 _ => CardType.Number
             };
         }
     }
 
+    [JsonIgnore]
     public bool IsFaceCard => Rank > 10;
+    [JsonIgnore]
     public bool IsAce => Rank == 1;
-
+    [JsonIgnore]
     public CardType Type => _type;
-
+    [JsonIgnore]
     public Back BackColour => Suit switch
     {
         CardSuit.Hearts => Back.Red,
@@ -74,11 +83,8 @@ public class CardData
 
         string rankString = Type switch
         {
-            CardType.Ace => "ace",
-            CardType.Jack => "jack",
-            CardType.Queen => "queen",
-            CardType.King => "king",
-            _ => Rank.ToString()
+            CardType.Number => Rank.ToString(),
+            _ => Type.ToString().ToLower()
         };
 
         string suitString = Suit.ToString().ToLower();

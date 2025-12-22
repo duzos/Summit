@@ -9,6 +9,7 @@ using System.IO.Pipelines;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SummitKit.Command;
 
@@ -38,6 +39,11 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
             input += e.Character;
     }
 
+    public CommandContext Context => new((text, color) =>
+    {
+        history.Add(new ConsoleLine(text, color));
+    });
+
     private void SubmitCommand()
     {
         if (!string.IsNullOrWhiteSpace(input)) commandHistory.Add(input);
@@ -45,18 +51,13 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
         historyIndex = commandHistory.Count;
         history.Add(new ConsoleLine("> " + input, Color.Yellow));
 
-        var context = new CommandContext((text, color) =>
-        {
-            history.Add(new ConsoleLine(text, color));
-        });
-
         try
         {
-            Commands.Execute(input, context);
+            Commands.Execute(input, Context);
         }
         catch (Exception ex)
         {
-            context.Error("Error executing command: " + ex.Message);
+            Context.Error("Error executing command: " + ex.Message);
         }
 
         input = "";
@@ -117,6 +118,37 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
         }
     }
 
+    private List<string> WordWrap(string text, float? maxWidthNull = null, SpriteFont? fontNull = null)
+    {
+        float maxWidth = maxWidthNull.GetValueOrDefault(Core.GraphicsDevice.Viewport.Width + 10);
+        SpriteFont font1 = fontNull ?? font;
+
+        var lines = new List<string>();
+
+        foreach (var paragraph in text.Split('\n'))
+        {
+            string currentLine = "";
+            foreach (var word in paragraph.Split(' '))
+            {
+                string testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
+                if (font1.MeasureString(testLine).X > maxWidth)
+                {
+                    if (!string.IsNullOrEmpty(currentLine))
+                        lines.Add(currentLine);
+                    currentLine = word;
+                }
+                else
+                {
+                    currentLine = testLine;
+                }
+            }
+            if (!string.IsNullOrEmpty(currentLine))
+                lines.Add(currentLine);
+        }
+
+        return lines;
+    }
+
     public void Draw(SpriteBatch spriteBatch)
     {
         if (!Open) return;
@@ -134,21 +166,29 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
 
         int visibleLines = (height / font.LineSpacing) - 2;
 
-        int start = Math.Max(0, history.Count - visibleLines - scrollOffset);
-        int end = Math.Min(history.Count, start + visibleLines);
+        List<ConsoleLine> historyWrap = [];
+
+        foreach (var line in history) { 
+            foreach (var wrapLine in WordWrap(line.Text))
+            {
+                historyWrap.Add(new ConsoleLine(wrapLine, line.Color));
+            }
+        }
+
+        int start = Math.Max(0, historyWrap.Count - visibleLines - scrollOffset);
+        int end = Math.Min(historyWrap.Count, start + visibleLines);
 
         for (int i = start; i < end; i++)
         {
-            var line = history[i];
-
+            var line = historyWrap[i];
             spriteBatch.DrawString(
                 font,
                 line.Text,
                 new Vector2(10, y),
                 line.Color
             );
-
             y += font.LineSpacing;
+
         }
 
 

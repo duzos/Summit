@@ -5,8 +5,10 @@ using Summit.Card;
 using Summit.Command;
 using Summit.State;
 using SummitKit;
+using SummitKit.Command;
 using SummitKit.Graphics;
 using SummitKit.Input;
+using SummitKit.IO;
 using SummitKit.Physics;
 using System;
 using System.Collections;
@@ -18,6 +20,8 @@ namespace Summit
 {
     public class MainGame : Core
     {
+        public static string Name => "Summit";
+
         public static TextureAtlas Atlas { get; private set; }
         public static GameState State { get; private set; }
 
@@ -33,7 +37,15 @@ namespace Summit
 
             Console.Commands.RegisterNamespace("Summit.Command", assembly: typeof(SetScoreCommand).Assembly);
 
-            State.NextRound();
+            try
+            {
+                ((ISerializable<GameState>)State).Load();
+            }
+            catch (Exception e)
+            {
+                Console.Context.Error("Failed to load game state: " + e.Message);
+                State.NextRound();
+            }
         }
 
         protected override void LoadContent()

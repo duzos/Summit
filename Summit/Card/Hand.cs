@@ -8,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Summit.Card;
@@ -33,9 +34,13 @@ public class Hand : IPositioned, IDraggable
 
     public int SelectedMaxSize { get; set; } = 5;
     public int MaxSize { get; set; } = 10;
-    private readonly List<CardData> _cards;
+    [JsonInclude]
+    private List<CardData> _cards { get; set; }
+    [JsonIgnore]
     private readonly Dictionary<CardData, CardEntity> _entities;
+    [JsonIgnore]
     private readonly ObservableCollection<CardEntity> _selected;
+    [JsonIgnore]
     private readonly HashSet<CardEntity> _selectedSet;
     private Vector2 _centrePos;
 
@@ -58,7 +63,7 @@ public class Hand : IPositioned, IDraggable
                 entity.Draggable = value;
         }
     }
-
+    [JsonIgnore]
     public ObservableCollection<CardEntity> Selected => _selected;
 
     public Hand()
@@ -69,7 +74,9 @@ public class Hand : IPositioned, IDraggable
         _selectedSet = [];
         _selected.CollectionChanged += Selected_CollectionChanged;
     }
+    [JsonIgnore]
     public IReadOnlyList<CardData> Cards => _cards.AsReadOnly();
+    [JsonIgnore]
     public ImmutableList<CardEntity> Entities => [.. _entities.Values];
 
     public bool AddCard(CardEntity card)
