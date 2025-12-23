@@ -166,8 +166,8 @@ namespace Summit
             string score = State.Score.ToString();
             SpriteBatch.DrawString(
                 _font,                   // font
-                score,     // text
-                new(10, 200),           // position
+                "Current\n" + score,     // text
+                new(10, 210),           // position
                 Color.White,             // color
                 0.0F,
                 Vector2.Zero,
@@ -178,7 +178,7 @@ namespace Summit
 
             SpriteBatch.DrawString(
                 _font,                   // font
-                State.TargetScore.ToString(),     // text
+                "Target\n" + State.TargetScore.ToString(),     // text
                 new(10, 50),           // position
                 Color.White,             // color
                 0.0F,
