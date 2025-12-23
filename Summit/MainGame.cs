@@ -231,7 +231,7 @@ namespace Summit
             SpriteBatch.DrawString(
                 _font,                   // font
                 txt,     // text
-                new(GraphicsDevice.PresentationParameters.BackBufferWidth - 50, GraphicsDevice.PresentationParameters.BackBufferHeight - 150),           // position
+                new(GraphicsDevice.PresentationParameters.BackBufferWidth - 60, GraphicsDevice.PresentationParameters.BackBufferHeight - 180),           // position
                 Color.White,             // color
                 0.0F,
                 _font.MeasureString(txt) * 0.5F,

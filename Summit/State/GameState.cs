@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Summit.Card;
 using Summit.Json;
 using SummitKit;
@@ -74,6 +75,7 @@ public class GameState : ISerializable<GameState>
             card.Draggable = false;
             MainHand.RemoveCard(card);
             PlayedHand.AddCard(card);
+            card.ScaleTo(card.Scale * 1.1F, TimeSpan.FromSeconds(0.1F), TimeSpan.FromSeconds(0.25F));
         }
         Deal();
         DiscardDeck.AddAll(PlayedHand.Entities);
@@ -174,7 +176,9 @@ public class GameState : ISerializable<GameState>
         Core.Entities.Entities.Where(e => e is CardEntity)
             .ToList()
             .ForEach(Core.Entities.RemoveEntity);
-        PlayedHand.Spacing = 10F;
+
+        PlayedHand.Spacing = 20F;
+        SpawnDeckTop();
 
         if (CheckGameEnd()) return;
 
@@ -192,6 +196,35 @@ public class GameState : ISerializable<GameState>
         }, TimeSpan.FromSeconds(2));
     }
 
+    private CardEntity SpawnDeckTop()
+    {
+        CardEntity entity = new(new(CardType.Ace, CardSuit.Spades))
+        {
+            Scale = new(2.5F),
+            Backwards = true,
+            DragReplacesExisting = true
+        };
+        entity.Sprite?.CenterOrigin();
+        entity.HasCollisions = false;
+        entity.Sprite.LayerDepth = 0.1F;
+        entity.CollidesWithWindowEdges = false;
+        entity.Position = new Vector2(Core.GraphicsDevice.PresentationParameters.BackBufferWidth - 100, Core.GraphicsDevice.PresentationParameters.BackBufferHeight -150);
+        var pos = entity.Position;
+        Core.Entities.AddEntity(entity);
+
+        Scheduler.Repeat(task =>
+        {
+            if (entity.IsRemoved) task.Cancelled = true;
+            if (entity.MoveTarget is VelocityTarget) return;
+            // check distance
+            if (entity.DistanceTo(pos) < 10F) return;
+            Core.Console.Context.Reply(entity.DistanceTo(pos).ToString());
+
+            entity.MoveTo(pos, TimeSpan.FromSeconds(0.5F), TimeSpan.Zero, replaceExisting: false, centered: false);
+        }, TimeSpan.Zero, TimeSpan.FromSeconds(0.1F));
+
+        return entity;
+    }
     private void TrySave()
     {
         try

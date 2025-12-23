@@ -95,7 +95,7 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
     {
         base.OnDrag(state, dragOffset);
 
-        ParentHand.UpdateIndex(this);
+        ParentHand?.UpdateIndex(this);
         if (MoveTarget is not null || !(ParentHand.Entities.Contains(this))) return;
         
         SetSelected(false);
@@ -105,7 +105,7 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
     {
         base.OnRelease(state, wasBeingDragged);
 
-        if (!(ParentHand.Entities.Contains(this))) return;
+        if (ParentHand == null || !(ParentHand.Entities.Contains(this))) return;
 
         if (wasBeingDragged) {
             Velocity = Vector2.Zero;

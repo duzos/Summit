@@ -5,6 +5,7 @@ using SummitKit.Graphics;
 using SummitKit.Input;
 using System;
 using System.Formats.Tar;
+using System.Linq;
 
 namespace SummitKit.Physics;
 
@@ -74,8 +75,10 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
     public bool CollidesWithWindowEdges { get; set; } = true;
     public bool Draggable { get; set; } = true;
     public bool DragFollowsCursor { get; set; } = true;
+    public bool DragReplacesExisting { get; set; } = false;
+    public bool IsRemoved => !Core.Entities.Entities.Contains(this);
     public virtual Shadow? Shadow => Sprite?.Shadow;
-    public float Rotation 
+    public float Rotation
     {
         get => Sprite?.Rotation ?? 0f;
         set
@@ -177,10 +180,10 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         UpdateAABBIfNeeded();
 
 
-        float moveLeft = AABB.Right - obstacle.Left;      
-        float moveRight = obstacle.Right - AABB.Left;     
-        float moveUp = AABB.Bottom - obstacle.Top;        
-        float moveDown = obstacle.Bottom - AABB.Top;     
+        float moveLeft = AABB.Right - obstacle.Left;
+        float moveRight = obstacle.Right - AABB.Left;
+        float moveUp = AABB.Bottom - obstacle.Top;
+        float moveDown = obstacle.Bottom - AABB.Top;
 
         (float amount, Action apply)[] options =
         [
@@ -232,7 +235,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         Velocity *= new Vector2(MathF.Pow(Friction.X, dt), MathF.Pow(Friction.Y, dt));
 
         if (MoveTarget is not null)
-        {   
+        {
             MoveTarget.Update(time);
             //Position = MoveTarget.Position;
 
@@ -296,14 +299,15 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
 
     public virtual void OnDrag(MouseState state, Vector2 dragOffset)
     {
-        if (Draggable && DragFollowsCursor && MoveTarget is null)
+        if (Draggable && DragFollowsCursor && (DragReplacesExisting || MoveTarget is null))
         {
+            MoveTarget = null;
             MoveTo(new VelocityTarget(() => Core.Input.Mouse.CurrentState.Position.ToVector2() - dragOffset, this, null, () => IsBeingDragged, 10, 50, Width), false);
         }
     }
 
     public virtual void OnCollision(Entity other)
-    { 
+    {
         KeepOutsideArea(other.AABB);
     }
 
@@ -368,5 +372,11 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
     public void Remove()
     {
         Core.Entities.RemoveEntity(this);
+    }
+
+    public float DistanceTo(Vector2 other)
+    {
+        UpdateAABBIfNeeded();
+        return Vector2.Distance(Position, other);
     }
 }
