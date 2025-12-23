@@ -104,9 +104,9 @@ public class CardData
         };
         return $"{rankString} of {Suit}";
     }
-    public float Apply(float total)
+    public float Apply(ref float total)
     {
-        return Suit.Apply(total, Math.Min(Rank, 10));
+        return Suit.Apply(ref total, Math.Min(Rank, 10));
     }
 
     public enum Back

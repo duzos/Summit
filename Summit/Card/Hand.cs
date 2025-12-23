@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using SummitKit;
 using SummitKit.Physics;
+using SummitKit.Util;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -140,10 +141,32 @@ public class Hand : IPositioned, IDraggable
         List<CardEntity> list = (selectedOnly ? Selected.ToList() : _entities.Values.ToList());
         foreach (var cardEntity in list)
         {
-            total = cardEntity.Data.Apply(total);
+            cardEntity.Data.Apply(ref total);
         }
 
         return total;
+    }
+
+    public void Trigger(Action<float>? finished = null, Action<float>? update = null, bool selectedOnly = false)
+    {
+        List<CardEntity> list = (selectedOnly ? Selected.ToList() : _entities.Values.ToList());
+
+        int i = 0;
+        float localTotal = 0f;
+        foreach (var cardEntity in list)
+        {
+            Scheduler.Delay(() =>
+            {
+                cardEntity.Trigger(ref localTotal);
+                update?.Invoke(localTotal);
+            }, TimeSpan.FromSeconds(i * 1F));
+            i++;
+        }
+
+        Scheduler.Delay(() =>
+        {
+            finished?.Invoke(localTotal);
+        }, TimeSpan.FromSeconds(i * 1F + 0.5F));
     }
 
     public void SpawnCards()

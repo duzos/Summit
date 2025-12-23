@@ -188,6 +188,21 @@ namespace Summit
                 0.0f
             );
 
+            if (State.PlayedScore.HasValue)
+            {
+                SpriteBatch.DrawString(
+                    _font,                   // font
+                    State.PlayedScore.Value.ToString(),     // text
+                    new(GraphicsDevice.Viewport.Width / 2, 100),           // position
+                    Color.White,             // color
+                    0.0F,
+                    _font.MeasureString(State.PlayedScore.Value.ToString()) * 0.5F,
+                    5.0F,
+                    SpriteEffects.None,
+                    0.0f
+                );
+            }
+
             SpriteBatch.DrawString(
                 _font,
                 Entities.DraggedEntity is not CardEntity e ? "" : State.MainHand.Cards.ToList().IndexOf(e.Data).ToString(),

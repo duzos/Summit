@@ -30,6 +30,8 @@ public class GameState : ISerializable<GameState>
     [JsonInclude]
     public Hand PlayedHand { get; private set; } = new();
     public float Score { get; set; } = 0;
+    public float? PlayedScore { get; set; }
+
     [JsonIgnore]
     public Random Random { get; private set; } = new();
     public int TargetScore { get; set; } = 0;
@@ -88,17 +90,28 @@ public class GameState : ISerializable<GameState>
 
         Scheduler.Delay(() =>
         {
-            MainHand.Draggable = true;
-            Score += PlayedHand.TotalValue(false);
-            PlayedHand.DiscardAll();
-
-            if (!CheckGameEnd())
+            PlayedHand.Trigger(total =>
             {
-                MainHand.SpawnCards();
-            }
+                Score += total;
+                PlayedScore = null;
 
-            TrySave();
-        }, TimeSpan.FromSeconds(2));
+                Scheduler.Delay(() =>
+                {
+                    MainHand.Draggable = true;
+                    PlayedHand.DiscardAll();
+
+                    if (!CheckGameEnd())
+                    {
+                        MainHand.SpawnCards();
+                    }
+
+                    TrySave();
+                }, TimeSpan.FromSeconds(1));
+            }, update =>
+            {
+                PlayedScore = update;
+            });
+        },TimeSpan.FromSeconds(1));
 
         return true;
     }
@@ -218,7 +231,6 @@ public class GameState : ISerializable<GameState>
             if (entity.MoveTarget is VelocityTarget) return;
             // check distance
             if (entity.DistanceTo(pos) < 10F) return;
-            Core.Console.Context.Reply(entity.DistanceTo(pos).ToString());
 
             entity.MoveTo(pos, TimeSpan.FromSeconds(0.5F), TimeSpan.Zero, replaceExisting: false, centered: false);
         }, TimeSpan.Zero, TimeSpan.FromSeconds(0.1F));

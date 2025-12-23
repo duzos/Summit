@@ -13,6 +13,7 @@ namespace Summit.Card;
 
 public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas))
 {
+    private float? _desiredRotation;
     public CardData Data { get; init; } = data;
     public Hand ParentHand { get; set; }
 
@@ -74,7 +75,19 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
 
         // make the final rotation the sum of wobble and velocity tilt, smoothing towards it
         float desiredRotation = wobble + velocityTilt;
-        Rotation = MathHelper.Lerp(Rotation, desiredRotation, 0.1f);
+
+        if (_desiredRotation.HasValue)
+        {
+            desiredRotation += _desiredRotation.Value;
+        }
+
+        Rotation = MathHelper.Lerp(Rotation, desiredRotation, (_desiredRotation.HasValue ? 0.3F : 0.1f));
+
+        // check if within 5 degs of rot
+        if (_desiredRotation.HasValue && MathF.Abs(Rotation - desiredRotation) < MathHelper.ToRadians(5F))
+        {
+            _desiredRotation = null;
+        }
     }
     public override void OnClick(MouseState state)
     {
@@ -113,5 +126,18 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
             ParentHand.UpdateIndex(this);
             ParentHand.UpdatePositions();
         }
+    }
+
+    public void Trigger(ref float total)
+    {
+        const float minAngle = 20F;
+        const float maxAngle = 45F;
+        float angle = MathHelper.Lerp(minAngle, maxAngle, (float) MainGame.State.Random.NextDouble());
+        // randomise sign
+        if (MainGame.State.Random.Next(2) == 0) angle = -angle;
+
+        _desiredRotation = MathHelper.ToRadians(angle);
+
+        Data.Apply(ref total);
     }
 }

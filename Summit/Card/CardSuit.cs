@@ -25,14 +25,14 @@ public static class CardSuitExtensions
         _ => throw new ArgumentOutOfRangeException(nameof(suit), suit, null)
     };
 
-    public static float Apply(this CardSuit suit, float total, float value)
+    public static float Apply(this CardSuit suit, ref float total, float value)
     {
         return suit switch
         {
-            CardSuit.Hearts => total - value,
-            CardSuit.Diamonds => total / value,
-            CardSuit.Clubs => total + value,
-            CardSuit.Spades => total * value,
+            CardSuit.Hearts => total -= value,
+            CardSuit.Diamonds => total /= value,
+            CardSuit.Clubs => total += value,
+            CardSuit.Spades => total *= value,
             _ => throw new ArgumentOutOfRangeException(nameof(suit), suit, null)
         };
     }
