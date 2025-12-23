@@ -22,7 +22,7 @@ public class Shadow {
         var beforeColour = sprite.Colour;
         sprite.Colour = Colour;
         var beforeDepth = sprite.LayerDepth;
-        sprite.LayerDepth = 1.0F;
+        sprite.LayerDepth = 0.0F;
         sprite.Draw(batch, position + Offset);
         sprite.Colour = beforeColour;
         sprite.LayerDepth = beforeDepth;

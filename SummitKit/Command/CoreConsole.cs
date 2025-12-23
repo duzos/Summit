@@ -159,7 +159,12 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
         spriteBatch.Draw(
             background,
             new Rectangle(0, 0, Core.GraphicsDevice.Viewport.Width, height),
-            Color.Gray * 0.75f
+            null,
+            Color.Gray * 0.75f,
+            0,
+            Vector2.Zero,
+            SpriteEffects.None,
+            0.99F
         );
 
         int y = 10;
@@ -185,7 +190,12 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
                 font,
                 line.Text,
                 new Vector2(10, y),
-                line.Color
+                line.Color,
+                0.0F,
+                Vector2.Zero,
+                1,
+                SpriteEffects.None,
+                1
             );
             y += font.LineSpacing;
 
@@ -196,7 +206,12 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
             font,
             "> " + input + "_",
             new Vector2(10, height - font.LineSpacing - 5),
-            Color.Yellow
+            Color.Yellow,
+            0.0F,
+            Vector2.Zero,
+            1,
+            SpriteEffects.None,
+            1
         );
     }
 }

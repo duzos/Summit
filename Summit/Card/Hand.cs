@@ -33,7 +33,7 @@ public class Hand : IPositioned, IDraggable
     };
 
     public int SelectedMaxSize { get; set; } = 5;
-    public int MaxSize { get; set; } = 10;
+    public int MaxSize { get; set; } = 8;
     [JsonInclude]
     private List<CardData> _cards { get; set; }
     [JsonIgnore]
@@ -163,7 +163,7 @@ public class Hand : IPositioned, IDraggable
                 {
                     ParentHand = this
                 };
-                entity.Scale *= 2;
+                entity.Scale *= 2.5F;
                 _entities[card] = entity;
 
                 // place off-screen initially so MoveTo animates from somewhere visible
@@ -171,6 +171,7 @@ public class Hand : IPositioned, IDraggable
                 entity.Position = new(Core.GraphicsDevice.Viewport.Width - entity.Width - 10, Core.GraphicsDevice.Viewport.Height - entity.Height - 10);
                 entity.SetSelected(false);
                 entity.Backwards = true;
+                entity.HasCollisions = false;
                 entity.Flip(TimeSpan.FromSeconds(0.25), TimeSpan.FromSeconds(0.3), TimeSpan.FromSeconds(0.25));
 
                 Core.Entities.AddEntity(entity);
@@ -189,7 +190,7 @@ public class Hand : IPositioned, IDraggable
 
     public void UpdatePositions(Func<int, TimeSpan> indexToSpeed, Func<int, TimeSpan> indexToDelay)
     {
-        const float spacing = 10f;
+        const float spacing = -15f;
 
         float totalWidth = 0f;
         float[] widths = new float[_cards.Count];
@@ -223,6 +224,12 @@ public class Hand : IPositioned, IDraggable
             if (!entity.IsBeingDragged) {
                 entity.MoveTo(pos - new Vector2(0, entity.IsSelected ? 10 : 0), indexToSpeed.Invoke(i), indexToSpeed.Invoke(i), replaceExisting: false);
             }
+
+            if (entity.Sprite != null)
+            {
+                entity.Sprite.LayerDepth = 0.1F + ((float)i) / (_cards.Count + 1);
+            }
+
             pos.X += widths[i] + spacing;
         }
     }

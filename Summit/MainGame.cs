@@ -63,6 +63,7 @@ namespace Summit
             button.Shadow.Enabled = true;
             // bottom right corner
             button.Scale *= 2F;
+            button.Sprite.LayerDepth = .1F;
             button.Position = new (GraphicsDevice.PresentationParameters.BackBufferWidth - button.Width - 10, GraphicsDevice.PresentationParameters.BackBufferHeight - button.Height - 10);
 
             Entities.AddEntity(button);
@@ -76,6 +77,7 @@ namespace Summit
             button.Scale *= 2F;
             // next to the other button
             button.Position = new Vector2(1280 - button.Width - button.Width - 20, 720 - button.Height - 10);
+            button.Sprite.LayerDepth = .1F;
             Entities.AddEntity(button);
 
             button = new Button(Atlas.CreateSprite("rank-btn"), but =>
@@ -85,6 +87,7 @@ namespace Summit
             });
             button.Scale *= 2F;
             button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) - button.Width - 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
+            button.Sprite.LayerDepth = .1F;
             Entities.AddEntity(button);
 
             button = new Button(Atlas.CreateSprite("suit-btn"), but =>
@@ -94,6 +97,7 @@ namespace Summit
             });
             button.Scale *= 2F;
             button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
+            button.Sprite.LayerDepth = .1F;
 
             Entities.AddEntity(button);
 
@@ -118,13 +122,13 @@ namespace Summit
             // Set animation parameters
             _background.Parameters["time"]?.SetValue(totalTime);
             _background.Parameters["spin_time"]?.SetValue(totalTime * 0.1f); // can tweak speed
-            _background.Parameters["spin_amount"].SetValue(1.0f);           // full swirl
-            _background.Parameters["contrast"].SetValue(0.2f);             // default contrast
+            _background.Parameters["spin_amount"].SetValue(0.25F);           // full swirl
+            _background.Parameters["contrast"].SetValue(1);             // default contrast
 
             // Set colors (RGBA)
-            _background.Parameters["colour1"].SetValue(new Vector4(0.05f, 0.4f, 0.05f, 1f)); // dark felt
-            _background.Parameters["colour2"].SetValue(new Vector4(0.0f, 0.6f, 0.0f, 1f));  // lighter green
-            _background.Parameters["colour3"].SetValue(new Vector4(0.0f, 0.3f, 0.0f, 1f));  // subtle highlight
+            _background.Parameters["colour3"].SetValue(new Vector4(0.18f, 0.37f, 0.29f, 1f)); // dark felt
+            _background.Parameters["colour2"].SetValue(new Vector4(0.23f, 0.46f, 0.36f, 1f));  // lighter green
+            _background.Parameters["colour1"].SetValue(new Vector4(0.27f, 0.52f, 0.42f, 1f));  // subtle highlight
 
             // Pass screen size
             _background.Parameters["screenSize"].SetValue(new Vector2(
@@ -135,9 +139,8 @@ namespace Summit
             SpriteBatch.Draw(new Texture2D(GraphicsDevice, 1, 1), GraphicsDevice.Viewport.Bounds, Color.White);
             SpriteBatch.End();
 
-            SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
-
-            base.Draw(gameTime);
+            SpriteBatch.Begin(sortMode: SpriteSortMode.FrontToBack, samplerState: SamplerState.PointClamp);
+                
             string score = State.Score.ToString();
             SpriteBatch.DrawString(
                 _font,                   // font
@@ -186,7 +189,7 @@ namespace Summit
                 _font.MeasureString(txt) * 0.5F,
                 2.5F,
                 SpriteEffects.None,
-                0.0f
+                0.11f
             );
 
             txt = State.RemainingDiscards.ToString();
@@ -199,7 +202,7 @@ namespace Summit
                 _font.MeasureString(txt) * 0.5F,
                 2.5F,
                 SpriteEffects.None,
-                0.0F
+                0.11f
             );
             // remaining cards in deck count
             txt = (State.MainDeck.Count.ToString()) + "/" + (State.MainDeck.Count + State.DiscardDeck.Count + State.MainHand.Cards.Count).ToString();
@@ -212,8 +215,9 @@ namespace Summit
                 _font.MeasureString(txt) * 0.5F,
                 1F,
                 SpriteEffects.None,
-                0.0f
+                0.11f
             );
+            base.Draw(gameTime);
 
             SpriteBatch.End();
         }

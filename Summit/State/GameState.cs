@@ -89,7 +89,7 @@ public class GameState : ISerializable<GameState>
             Score += PlayedHand.TotalValue(false);
             PlayedHand.DiscardAll();
 
-            if (RemainingHands <= 0)
+            if (RemainingHands <= 0 || MainDeck.Count == 0)
             {
                 Scheduler.Delay(() => NextRound(), TimeSpan.FromSeconds(1));
             } else
@@ -163,7 +163,7 @@ public class GameState : ISerializable<GameState>
             .ToList()
             .ForEach(Core.Entities.RemoveEntity);
 
-        if (RemainingHands <= 0)
+        if (RemainingHands <= 0 || MainDeck.Count == 0)
         {
             NextRound();
             return;

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using SummitKit;
 using SummitKit.Graphics;
 using SummitKit.Physics;
 using System;
@@ -64,11 +65,17 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
     {
         base.Update(time);
 
-        // tilt towards velocity
-        float targetRotation = (Velocity.X / 100) * 0.05f;
-        Rotation = MathHelper.Lerp(Rotation, targetRotation, 0.1f);
-    }
+        // circular wobble rotation with variance based off index
+        int index = (Core.Entities.Entities.OfType<CardEntity>().ToList().IndexOf(this) + 1);
+        float wobble = 0.02f * MathF.Sin((float)(time.TotalGameTime.TotalSeconds * 2 + index));
 
+        // tilt towards velocity
+        float velocityTilt = (Velocity.X / 100f) * 0.05f;
+
+        // make the final rotation the sum of wobble and velocity tilt, smoothing towards it
+        float desiredRotation = wobble + velocityTilt;
+        Rotation = MathHelper.Lerp(Rotation, desiredRotation, 0.1f);
+    }
     public override void OnClick(MouseState state)
     {
         base.OnClick(state);

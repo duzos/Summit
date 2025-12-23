@@ -25,7 +25,7 @@ public sealed class HelpCommand : ICommand
             ctx.Reply("Available commands:");
 
             foreach (var cmd in _manager.Commands.OrderBy(c => c.Name))
-                ctx.Reply($"  {cmd.Name}");
+                ctx.Reply($"  {cmd.Name}" + (cmd.Description is null ? "" : " - " + cmd.Description));
             return;
         }
 
