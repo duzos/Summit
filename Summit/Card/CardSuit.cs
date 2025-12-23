@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Summit.Maths;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,6 +35,18 @@ public static class CardSuitExtensions
             CardSuit.Diamonds => total /= value,
             CardSuit.Clubs => total += value,
             CardSuit.Spades => total *= value,
+            _ => throw new ArgumentOutOfRangeException(nameof(suit), suit, null)
+        };
+    }
+
+    public static TokenExpression.Op ToOperation(this CardSuit suit)
+    {
+        return suit switch
+        {
+            CardSuit.Hearts => TokenExpression.Op.Subtract,
+            CardSuit.Diamonds => TokenExpression.Op.Divide,
+            CardSuit.Clubs => TokenExpression.Op.Add,
+            CardSuit.Spades => TokenExpression.Op.Multiply,
             _ => throw new ArgumentOutOfRangeException(nameof(suit), suit, null)
         };
     }

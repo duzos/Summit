@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Summit.Card;
 using Summit.Json;
+using Summit.Maths;
 using SummitKit;
 using SummitKit.IO;
 using SummitKit.Physics;
@@ -19,6 +20,7 @@ using System.Threading.Tasks;
 
 namespace Summit.State;
 
+// todo seperate into multiple sub classes
 public class GameState : ISerializable<GameState>
 {
     [JsonInclude]
@@ -56,6 +58,8 @@ public class GameState : ISerializable<GameState>
         }
     }
 
+    [JsonIgnore]
+    public TokenExpression.ResolveProfile ResolveProfile { get; set; } = TokenExpression.ResolveProfiles.BIDMAS;
     public GameState()
     {
         MainDeck.Shuffle();

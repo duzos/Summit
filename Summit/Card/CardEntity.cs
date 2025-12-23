@@ -128,7 +128,7 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
         }
     }
 
-    public void Trigger(ref float total)
+    public void Trigger()
     {
         const float minAngle = 20F;
         const float maxAngle = 45F;
@@ -138,6 +138,6 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
 
         _desiredRotation = MathHelper.ToRadians(angle);
 
-        Data.Apply(ref total);
+        //Data.Apply(ref total);
     }
 }
