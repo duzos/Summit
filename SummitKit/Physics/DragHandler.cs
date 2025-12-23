@@ -9,8 +9,7 @@ namespace SummitKit.Physics;
 
 public class DragHandler : IUpdating
 {
-    private static readonly TimeSpan HoldTime = TimeSpan.FromSeconds(0.1);
-    private TimeSpan _elapsed;
+    private static readonly float Threshold = 10F;
     private Entity? _possible;
     public Entity? Possible
     {
@@ -19,7 +18,6 @@ public class DragHandler : IUpdating
             if (value != _possible)
             {
                 _possible = value;
-                _elapsed = TimeSpan.Zero;
             }
 
             _possible = value;
@@ -32,9 +30,7 @@ public class DragHandler : IUpdating
     public Vector2 DragOffset { get; set; }
     public void Update(GameTime time)
     {
-        _elapsed += time.ElapsedGameTime;
-
-        if (_possible != null && _elapsed >= HoldTime)
+        if (_possible != null && (Vector2.Distance(Possible.Position + PossibleOffset, Core.Input.Mouse.Position.ToVector2()) > Threshold))
         {
             Dragged = Possible;
             DragOffset = PossibleOffset;
