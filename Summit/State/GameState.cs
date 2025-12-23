@@ -94,7 +94,7 @@ public class GameState : ISerializable<GameState>
 
         Scheduler.Delay(() =>
         {
-            PlayedHand.Trigger(total =>
+            PlayedHand.Trigger(ResolveProfile, total =>
             {
                 Score += total;
                 PlayedScore = null;
@@ -111,9 +111,10 @@ public class GameState : ISerializable<GameState>
 
                     TrySave();
                 }, TimeSpan.FromSeconds(1));
-            }, update =>
+            }, (step, card) =>
             {
-                PlayedScore = update;
+                card.Trigger();
+                PlayedScore = (float) step.After;
             });
         },TimeSpan.FromSeconds(1));
 

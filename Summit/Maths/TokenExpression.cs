@@ -44,6 +44,12 @@ public static class TokenExpression {
                 new ResolveGroup(Op.Multiply, Op.Divide),
                 new ResolveGroup(Op.Add, Op.Subtract)
             );
+
+        public static readonly ResolveProfile Inverted =
+            new("Inverted",
+                new ResolveGroup(Op.Add, Op.Subtract),              
+                new ResolveGroup(Op.Multiply, Op.Divide)
+            );
     }
 
     public record ApplyStep(
@@ -69,8 +75,13 @@ public static class TokenExpression {
         {
             foreach (var entry in remaining.Where(e => group.Operators.Contains(e.Card.Suit.ToOperation())))
             {
+                Op op = entry.Card.Suit.ToOperation();
                 double before = total;
-                total = Apply(total, entry.Card.Rank, entry.Card.Suit.ToOperation());
+                total = Apply(total, entry.Card.Rank, op);
+                if (total == 0 && (op == Op.Multiply || op == Op.Divide))
+                {
+                    total = Apply(total, entry.Card.Rank, Op.Add);
+                }
                 steps.Add(new ApplyStep(
                     entry.Index,
                     entry.Card.Suit.ToOperation(),

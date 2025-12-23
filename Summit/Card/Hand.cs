@@ -148,26 +148,25 @@ public class Hand : IPositioned, IDraggable
         return total;
     }
 
-    public void Trigger(TokenExpression.ResolveProfile profile, Action<float>? finished = null, Action<float>? update = null, bool selectedOnly = false)
+    public void Trigger(TokenExpression.ResolveProfile profile, Action<float>? finished = null, Action<TokenExpression.ApplyStep, CardEntity>? update = null, bool selectedOnly = false)
     {
         List<CardEntity> list = (selectedOnly ? [.. Selected] : _entities.Values.ToList());
         List<TokenExpression.ApplyStep> steps = TokenExpression.BuildApplySteps(this, profile, selected: selectedOnly);
 
         int i = 0;
-        float localTotal = 0f;
         foreach (var step in steps)
         {
             Scheduler.Delay(() =>
             {
-                
-                update?.Invoke(localTotal);
+
+                update?.Invoke(step, list.ElementAt(step.CardIndex));
             }, TimeSpan.FromSeconds(i * 1F));
             i++;
         }
 
         Scheduler.Delay(() =>
         {
-            finished?.Invoke(localTotal);
+            finished?.Invoke((float)steps.Last().After);
         }, TimeSpan.FromSeconds(i * 1F + 0.5F));
     }
 
