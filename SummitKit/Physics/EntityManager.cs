@@ -18,6 +18,8 @@ public class EntityManager : IUpdating, IDraw
     public float Gravity { get; set; } = 9.81F;
     private DragHandler _drag = new();
     public Entity? DraggedEntity => _drag.Dragged;
+    public Entity? HoveredEntity { get; private set; }
+    private Entity? _lastClick;
     public EntityManager()
     {
         _entities = [];
@@ -65,25 +67,37 @@ public class EntityManager : IUpdating, IDraw
         {
             var entity = GetEntityAtPosition(input.Position.ToVector2());
             entity?.OnClick(input.CurrentState);
+            _lastClick = entity;
         }
 
         if (input.WasButtonJustReleased(MouseButton.Left))
         {
-            var entity = DraggedEntity is not null ? DraggedEntity : GetEntityAtPosition(input.Position.ToVector2());
+            var entity = DraggedEntity is not null ? DraggedEntity : (GetEntityAtPosition(input.Position.ToVector2()));
             bool dragged = DraggedEntity is not null;
             _drag.Release();
             entity?.OnRelease(input.CurrentState, dragged);
+            
+            if (_lastClick is not null)
+            {
+                _lastClick.OnRelease(input.CurrentState, dragged);
+                _lastClick = null;
+            }
         }
 
-        var hoverEntity = GetEntityAtPosition(input.Position.ToVector2());
-        hoverEntity?.OnHover(input.CurrentState);
+        var preHover = HoveredEntity;
+        HoveredEntity = GetEntityAtPosition(input.Position.ToVector2());
+        if (preHover != HoveredEntity)
+        {
+            preHover?.OnHoverStop(input.CurrentState);
+        }
+        HoveredEntity?.OnHover(input.CurrentState);
 
         if (input.IsButtonDown(MouseButton.Left))
         {
-            if (hoverEntity is not null && hoverEntity.Draggable)
+            if (HoveredEntity is not null && HoveredEntity.Draggable)
             {
-                _drag.Possible = hoverEntity;
-                _drag.PossibleOffset = input.Position.ToVector2() - hoverEntity.Position;
+                _drag.Possible = HoveredEntity;
+                _drag.PossibleOffset = input.Position.ToVector2() - HoveredEntity.Position;
             }
 
             DraggedEntity?.OnDrag(input.CurrentState, _drag.DragOffset);

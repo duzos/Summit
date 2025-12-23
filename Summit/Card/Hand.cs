@@ -43,7 +43,7 @@ public class Hand : IPositioned, IDraggable
     [JsonIgnore]
     private readonly HashSet<CardEntity> _selectedSet;
     private Vector2 _centrePos;
-
+    public float Spacing = -15F;
     public Vector2 Position
     {
         get => _centrePos;
@@ -168,10 +168,11 @@ public class Hand : IPositioned, IDraggable
 
                 // place off-screen initially so MoveTo animates from somewhere visible
                 entity.Sprite?.CenterOrigin();
-                entity.Position = new(Core.GraphicsDevice.Viewport.Width - entity.Width - 10, Core.GraphicsDevice.Viewport.Height - entity.Height - 10);
+                entity.CollidesWithWindowEdges = false;
+                entity.HasCollisions = false;
+                entity.Position = new(Core.GraphicsDevice.Viewport.Width + entity.Width, Core.GraphicsDevice.Viewport.Height - entity.Height);
                 entity.SetSelected(false);
                 entity.Backwards = true;
-                entity.HasCollisions = false;
                 entity.Flip(TimeSpan.FromSeconds(0.25), TimeSpan.FromSeconds(0.3), TimeSpan.FromSeconds(0.25));
 
                 Core.Entities.AddEntity(entity);
@@ -190,8 +191,6 @@ public class Hand : IPositioned, IDraggable
 
     public void UpdatePositions(Func<int, TimeSpan> indexToSpeed, Func<int, TimeSpan> indexToDelay)
     {
-        const float spacing = -15f;
-
         float totalWidth = 0f;
         float[] widths = new float[_cards.Count];
         for (int i = 0; i < _cards.Count; i++)
@@ -205,7 +204,7 @@ public class Hand : IPositioned, IDraggable
         }
 
         if (_cards.Count > 1)
-            totalWidth += spacing * (_cards.Count - 1);
+            totalWidth += Spacing * (_cards.Count - 1);
 
         float centerX = Position.X - (widths.Length > 0 ? widths[0] / 2 : 0);
         float startX = centerX - (totalWidth / 2f);
@@ -230,7 +229,7 @@ public class Hand : IPositioned, IDraggable
                 entity.Sprite.LayerDepth = 0.1F + ((float)i) / (_cards.Count + 1);
             }
 
-            pos.X += widths[i] + spacing;
+            pos.X += widths[i] + Spacing;
         }
     }
 
@@ -244,7 +243,7 @@ public class Hand : IPositioned, IDraggable
         if (!_entities.ContainsValue(entity))
             return;
 
-        CardEntity nearest = Core.Entities.GetNearestEntity(entity.Position, float.MaxValue, val => val != entity && val is CardEntity valCard && _entities.ContainsValue(valCard)) as CardEntity;
+        CardEntity nearest = Core.Entities.GetNearestEntity(Core.Input.Mouse.Position.ToVector2(), float.MaxValue, val => val != entity && val is CardEntity valCard && _entities.ContainsValue(valCard)) as CardEntity;
        
         int curIndex = _cards.IndexOf(entity.Data);
         int targetIndex = nearest != null ? _cards.IndexOf(nearest.Data) : curIndex;

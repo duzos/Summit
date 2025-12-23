@@ -74,7 +74,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
     public bool CollidesWithWindowEdges { get; set; } = true;
     public bool Draggable { get; set; } = true;
     public bool DragFollowsCursor { get; set; } = true;
-    public Shadow Shadow => Sprite?.Shadow;
+    public virtual Shadow? Shadow => Sprite?.Shadow;
     public float Rotation 
     {
         get => Sprite?.Rotation ?? 0f;
@@ -93,10 +93,24 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         UpdateAABBIfNeeded();
     }
 
-    public float Height => Sprite?.Height ?? 0f;
-    public float Width => Sprite?.Width ?? 0f;
+    public virtual float Height
+    {
+        get => Sprite?.Height ?? 0f;
+        protected set
+        {
+
+        }
+    }
+    public virtual float Width
+    {
+        get => Sprite?.Width ?? 0f;
+        protected set
+        {
+
+        }
+    }
     public bool IsHovered => AABB.Contains(Core.Input.Mouse.Position);
-    public Vector2 Scale {
+    public virtual Vector2 Scale {
         get => Sprite?.Scale ?? Vector2.Zero;
         set
         {
@@ -275,6 +289,10 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         // Override in derived classes to handle mouse hover.
     }
 
+    public virtual void OnHoverStop(MouseState state)
+    {
+        // Override in derived classes to handle mouse hover.
+    }
 
     public virtual void OnDrag(MouseState state, Vector2 dragOffset)
     {

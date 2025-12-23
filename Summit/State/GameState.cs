@@ -57,6 +57,7 @@ public class GameState : ISerializable<GameState>
     {
         MainDeck.Shuffle();
         PlayedHand.Draggable = false;
+        PlayedHand.Spacing = 10F;
 
         MainHand.Position = new(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height / 2);
         PlayedHand.Position = new Vector2(Core.GraphicsDevice.Viewport.Width / 2, 100);
@@ -64,7 +65,7 @@ public class GameState : ISerializable<GameState>
 
     public bool PlaySelected(bool force = false)
     {
-        if ((RemainingHands <= 0 || MainHand.Selected.Count <= 0) && !force) return false;
+        if ((RemainingHands <= 0 || MainHand.Selected.Count == 0) && !force) return false;
 
         var selectedCards = MainHand.Selected.ToImmutableList();
         foreach (var card in selectedCards)
@@ -89,10 +90,7 @@ public class GameState : ISerializable<GameState>
             Score += PlayedHand.TotalValue(false);
             PlayedHand.DiscardAll();
 
-            if (RemainingHands <= 0 || MainDeck.Count == 0)
-            {
-                Scheduler.Delay(() => NextRound(), TimeSpan.FromSeconds(1));
-            } else
+            if (!CheckGameEnd())
             {
                 MainHand.SpawnCards();
             }
@@ -103,15 +101,29 @@ public class GameState : ISerializable<GameState>
         return true;
     }
 
+
+    private bool CheckGameEnd()
+    {
+        bool val = RemainingHands <= 0 || (MainDeck.Count == 0 && MainHand.Cards.Count == 0);
+
+        if (val)
+        {
+            Scheduler.Delay(() => NextRound(), TimeSpan.FromSeconds(1));
+        }
+
+        return val;
+    }
     public bool DiscardSelected(bool force = false)
     {
-        if ((RemainingDiscards <= 0 || MainHand.Selected.Count <= 0) && !force) return false;
+        if ((RemainingDiscards <= 0 || MainHand.Selected.Count == 0) && !force) return false;
 
         DiscardDeck.AddAll(MainHand.Selected);
         MainHand.DiscardSelected();
         Deal();
         RemainingDiscards--;
         TrySave();
+
+        CheckGameEnd();
 
         return true;
     }
@@ -162,12 +174,9 @@ public class GameState : ISerializable<GameState>
         Core.Entities.Entities.Where(e => e is CardEntity)
             .ToList()
             .ForEach(Core.Entities.RemoveEntity);
+        PlayedHand.Spacing = 10F;
 
-        if (RemainingHands <= 0 || MainDeck.Count == 0)
-        {
-            NextRound();
-            return;
-        }
+        if (CheckGameEnd()) return;
 
         Deal();
         PlayedHand.SpawnCards();

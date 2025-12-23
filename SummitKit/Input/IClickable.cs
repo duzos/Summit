@@ -13,5 +13,6 @@ public interface IClickable
     void OnClick(MouseState state);
     void OnRelease(MouseState state, bool wasBeingDragged);
     void OnHover(MouseState state);
+    void OnHoverStop(MouseState state);
     void OnDrag(MouseState state, Vector2 dragOffset);
 }

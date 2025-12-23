@@ -99,7 +99,7 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
 
     public void LoadContent()
     {
-        font = Core.Content.Load<SpriteFont>("assets/balatro");
+        font = Core.ConsoleFont;
         background = new Texture2D(Core.GraphicsDevice, 1, 1);
         background.SetData([Color.White]);
     }
@@ -118,7 +118,7 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
         }
     }
 
-    private List<string> WordWrap(string text, float? maxWidthNull = null, SpriteFont? fontNull = null)
+    public List<string> WordWrap(string text, float? maxWidthNull = null, SpriteFont? fontNull = null, float scale = 1)
     {
         float maxWidth = maxWidthNull.GetValueOrDefault(Core.GraphicsDevice.Viewport.Width + 10);
         SpriteFont font1 = fontNull ?? font;
@@ -131,7 +131,7 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
             foreach (var word in paragraph.Split(' '))
             {
                 string testLine = string.IsNullOrEmpty(currentLine) ? word : currentLine + " " + word;
-                if (font1.MeasureString(testLine).X > maxWidth)
+                if ((font1.MeasureString(testLine).X * scale) > maxWidth)
                 {
                     if (!string.IsNullOrEmpty(currentLine))
                         lines.Add(currentLine);

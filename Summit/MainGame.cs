@@ -51,57 +51,79 @@ namespace Summit
 
         protected override void LoadContent()
         {
+            _font = Content.Load<SpriteFont>("assets/balatro");
+            ConsoleFont = _font;
+
             base.LoadContent();
 
             Atlas = TextureAtlas.FromFile(Content, "assets/atlas-definition.xml");
             State = new();
 
-            var button = new Button(Atlas.CreateSprite("red-back"), but =>
-            {
-                State.DiscardSelected();
-            });
-            button.Shadow.Enabled = true;
-            // bottom right corner
-            button.Scale *= 2F;
-            button.Sprite.LayerDepth = .1F;
-            button.Position = new (GraphicsDevice.PresentationParameters.BackBufferWidth - button.Width - 10, GraphicsDevice.PresentationParameters.BackBufferHeight - button.Height - 10);
-
-            Entities.AddEntity(button);
-
-            button = new(Atlas.CreateSprite("blue-back"), but =>
+            var button = new SimpleButton(ConsoleFont, but =>
             {
                 State.PlaySelected();
                 State.Deal();
             });
+            button.SetDimensions(200, 100);
             button.Shadow.Enabled = true;
-            button.Scale *= 2F;
+            button.Scale = Vector2.One;
             // next to the other button
-            button.Position = new Vector2(1280 - button.Width - button.Width - 20, 720 - button.Height - 10);
-            button.Sprite.LayerDepth = .1F;
+            button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) - button.Width - 55F, GraphicsDevice.PresentationParameters.BackBufferHeight - 15 - button.Height);
+            float lastX = button.Position.X + button.Width;
+            button.Text = "Play";
+            button.BaseColour = Color.Blue;
+            button.HoverColour = Color.DarkBlue;
+            button.OnUpdate = (b, time) => {
+                b.Text = "Play (" + State.RemainingHands + ")";
+                b.Enabled = State.RemainingHands > 0;
+            };
             Entities.AddEntity(button);
 
-            button = new Button(Atlas.CreateSprite("rank-btn"), but =>
+            button = new SimpleButton(ConsoleFont, but =>
             {
                 State.MainHand.SortCards(Hand.SortByValue);
                 State.LastSort = Hand.SortByValue;
             });
-            button.Scale *= 2F;
-            button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) - button.Width - 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
-            button.Sprite.LayerDepth = .1F;
+            button.SetDimensions(100, 50);
+            button.Scale = Vector2.One;
+            button.Position = new(lastX + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
+            button.Text = "Rank";
+            button.BaseColour = Color.Orange;
+            button.HoverColour = Color.DarkOrange;
             Entities.AddEntity(button);
 
-            button = new Button(Atlas.CreateSprite("suit-btn"), but =>
+            button = new SimpleButton(ConsoleFont, but =>
             {
                 State.MainHand.SortCards(Hand.SortBySuit);
                 State.LastSort = Hand.SortBySuit;
             });
-            button.Scale *= 2F;
-            button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
-            button.Sprite.LayerDepth = .1F;
+            button.SetDimensions(100, 50);
+            button.Scale = Vector2.One;
+            button.Position = new(lastX + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 15 - button.Height - button.Height);
+            button.Text = "Suit";
+            lastX += button.Width + 5;
+            button.BaseColour = Color.Orange;
+            button.HoverColour = Color.DarkOrange;
+            Entities.AddEntity(button);
+
+            button = new SimpleButton(ConsoleFont, but =>
+            {
+                State.DiscardSelected();
+            });
+            button.SetDimensions(200, 100);
+            button.Position = new(lastX + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 15 - button.Height);
+            button.Shadow.Enabled = true;
+            button.Text = "Discard";
+            button.BaseColour = Color.Red;
+            button.HoverColour = Color.DarkRed;
+            button.OnUpdate = (b, time) => {
+                b.Text = "Discard (" + State.RemainingDiscards + ")";
+
+                b.Enabled = State.RemainingDiscards > 0;
+            };
 
             Entities.AddEntity(button);
 
-            _font = Content.Load<SpriteFont>("assets/balatro");
             _background = Content.Load<Effect>("assets/Background");
         }
 
@@ -145,10 +167,10 @@ namespace Summit
             SpriteBatch.DrawString(
                 _font,                   // font
                 score,     // text
-                new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2), GraphicsDevice.PresentationParameters.BackBufferHeight - 100),           // position
+                new(10, 200),           // position
                 Color.White,             // color
                 0.0F,
-                _font.MeasureString(score) * 0.5F,
+                Vector2.Zero,
                 5.0F,
                 SpriteEffects.None,
                 0.0f
@@ -157,10 +179,10 @@ namespace Summit
             SpriteBatch.DrawString(
                 _font,                   // font
                 State.TargetScore.ToString(),     // text
-                new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2), 50),           // position
+                new(10, 50),           // position
                 Color.White,             // color
                 0.0F,
-                _font.MeasureString(State.TargetScore.ToString()) * 0.5F,
+                Vector2.Zero,
                 5.0F,
                 SpriteEffects.None,
                 0.0f
@@ -180,7 +202,7 @@ namespace Summit
 
             // draw remaining hands & discards on top of respective buttons
             string txt = State.RemainingHands.ToString();
-            SpriteBatch.DrawString(
+            /*SpriteBatch.DrawString(
                 _font,                   // font
                 txt,     // text
                 new(GraphicsDevice.PresentationParameters.BackBufferWidth - 130, GraphicsDevice.PresentationParameters.BackBufferHeight - 58),           // position
@@ -203,7 +225,7 @@ namespace Summit
                 2.5F,
                 SpriteEffects.None,
                 0.11f
-            );
+            );*/
             // remaining cards in deck count
             txt = (State.MainDeck.Count.ToString()) + "/" + (State.MainDeck.Count + State.DiscardDeck.Count + State.MainHand.Cards.Count).ToString();
             SpriteBatch.DrawString(

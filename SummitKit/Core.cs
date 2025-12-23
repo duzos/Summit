@@ -53,6 +53,7 @@ public class Core : Game
     /// Gets or Sets a value that indicates if the game should exit when the esc key on the keyboard is pressed.
     /// </summary>
     public static bool ExitOnEscape { get; set; }
+    public static SpriteFont ConsoleFont { get; set; }
 
     /// <summary>
     /// Creates a new Core instance.
@@ -100,6 +101,12 @@ public class Core : Game
         Window.TextInput += Console.OnTextInput;
     }
 
+    public void ToggleFullScreen()
+    {
+        Graphics.IsFullScreen = !Graphics.IsFullScreen;
+        Graphics.ApplyChanges();
+    }
+
     protected override void Initialize()
     {
         Entities = new EntityManager();
@@ -135,6 +142,11 @@ public class Core : Game
         if (ExitOnEscape && Input.Keyboard.IsKeyDown(Microsoft.Xna.Framework.Input.Keys.Escape))
         {
             Exit();
+        }
+
+        if (Input.Keyboard.WasKeyJustReleased(Microsoft.Xna.Framework.Input.Keys.F11))
+        {
+            ToggleFullScreen();
         }
 
         Entities.Update(gameTime);
