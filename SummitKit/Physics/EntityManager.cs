@@ -5,6 +5,7 @@ using SummitKit.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,6 +21,8 @@ public class EntityManager : IUpdating, IDraw
     public Entity? DraggedEntity => _drag.Dragged;
     public Entity? HoveredEntity { get; private set; }
     private Entity? _lastClick;
+
+    public float LayerDepth { get; set; } = 0.0F;
     public EntityManager()
     {
         _entities = [];
@@ -65,14 +68,14 @@ public class EntityManager : IUpdating, IDraw
     {
         if (input.WasButtonJustPressed(MouseButton.Left))
         {
-            var entity = GetEntityAtPosition(input.Position.ToVector2());
+            var entity = GetEntityAtPosition(input.Position.ToVector2(), e => e.Clickable);
             entity?.OnClick(input.CurrentState);
             _lastClick = entity;
         }
 
         if (input.WasButtonJustReleased(MouseButton.Left))
         {
-            var entity = DraggedEntity is not null ? DraggedEntity : (GetEntityAtPosition(input.Position.ToVector2()));
+            var entity = DraggedEntity is not null ? DraggedEntity : (GetEntityAtPosition(input.Position.ToVector2(), e => e.Clickable));
             bool dragged = DraggedEntity is not null;
             _drag.Release();
             entity?.OnRelease(input.CurrentState, dragged);
@@ -85,7 +88,7 @@ public class EntityManager : IUpdating, IDraw
         }
 
         var preHover = HoveredEntity;
-        HoveredEntity = GetEntityAtPosition(input.Position.ToVector2());
+        HoveredEntity = GetEntityAtPosition(input.Position.ToVector2(), e => e.Clickable);
         if (preHover != HoveredEntity)
         {
             preHover?.OnHoverStop(input.CurrentState);
@@ -131,7 +134,26 @@ public class EntityManager : IUpdating, IDraw
         }
     }
 
-    public Entity GetEntityAtPosition(Vector2 position) => _entities.FirstOrDefault(e => e.AABB.Contains(position));
+    public Entity GetEntityAtPosition(Vector2 position, Predicate<Entity>? filter = null)
+    {
+        Entity? best = null;
+        float bestDepth = float.NegativeInfinity;
+        var list = filter is null ? _entities : _entities.Where(filter.Invoke);
+
+        foreach (var e in list)
+        {
+            if (!e.AABB.Contains(position))
+                continue;
+
+            if (best == null || e.LayerDepth > bestDepth)
+            {
+                best = e;
+                bestDepth = e.LayerDepth;
+            }
+        }
+
+        return best;
+    }
     public IEnumerable<Entity> GetEntitiesInArea(Rectangle area) => _entities.Where(e => e.AABB.Intersects(area));
 
     public Entity GetNearestEntity(Vector2 position, float maxDistance, Predicate<Entity> predicate)

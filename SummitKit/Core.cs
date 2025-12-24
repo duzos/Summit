@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using SummitKit.Command;
 using SummitKit.Input;
 using SummitKit.Physics;
+using SummitKit.UI;
 using SummitKit.Util;
 using System;
 
@@ -101,9 +102,20 @@ public class Core : Game
         Window.TextInput += Console.OnTextInput;
     }
 
-    public void ToggleFullScreen()
+    public virtual void ToggleFullScreen()
     {
         Graphics.IsFullScreen = !Graphics.IsFullScreen;
+
+        if (Graphics.IsFullScreen)
+        {
+            Graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
+            Graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
+        } else
+        {
+            Graphics.PreferredBackBufferWidth = 1280;
+            Graphics.PreferredBackBufferHeight = 720;
+        }
+
         Graphics.ApplyChanges();
     }
 
@@ -121,6 +133,7 @@ public class Core : Game
         Input = new InputManager();
 
         Console.Commands.Register(new HelpCommand(Console.Commands));
+        Console.Commands.Register(new DebugUICommand());
         base.Initialize();
     }
 

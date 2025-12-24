@@ -26,6 +26,8 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
     private SpriteFont font;
     private Texture2D background;
 
+    public float LayerDepth { get; set; } = 0.95F;
+
     public void OnTextInput(object sender, TextInputEventArgs e)
     {
         if (!Open) return;
@@ -164,7 +166,7 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
             0,
             Vector2.Zero,
             SpriteEffects.None,
-            0.99F
+            LayerDepth
         );
 
         int y = 10;
@@ -195,7 +197,7 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
                 Vector2.Zero,
                 1,
                 SpriteEffects.None,
-                1
+                LayerDepth + 0.01F
             );
             y += font.LineSpacing;
 
@@ -211,7 +213,7 @@ public sealed class CoreConsole : IContentLoader, IUpdating, IDraw
             Vector2.Zero,
             1,
             SpriteEffects.None,
-            1
+            LayerDepth + 0.01F
         );
     }
 }

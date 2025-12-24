@@ -8,5 +8,6 @@ using System.Threading.Tasks;
 namespace SummitKit.Graphics;
 public interface IDraw
 {
+    float LayerDepth { get; set; }
     void Draw(SpriteBatch spriteBatch);
 }

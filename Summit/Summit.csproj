@@ -7,6 +7,9 @@
     <TargetFrameworks>net9.0;net9.0-windows</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
+	<Nullable>enable</Nullable>
+  </PropertyGroup>  
+  <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>

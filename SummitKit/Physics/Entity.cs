@@ -38,10 +38,21 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         }
     }
 
+    public virtual float LayerDepth {
+        get => Sprite?.LayerDepth ?? 0f;
+        set
+        {
+            if (Sprite != null)
+            {
+                Sprite.LayerDepth = value;
+            }
+        }
+    }
+
     /// <summary>
     /// Axis-aligned bounding box.
     /// </summary>
-    public Rectangle AABB
+    public virtual Rectangle AABB
     {
         get
         {
@@ -51,7 +62,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         private set => _aabb = value;
     }
 
-    public Vector2 Position
+    public virtual Vector2 Position
     {
         get => _position;
         set
@@ -76,6 +87,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
     public bool Draggable { get; set; } = true;
     public bool DragFollowsCursor { get; set; } = true;
     public bool DragReplacesExisting { get; set; } = false;
+    public bool Clickable { get; set; } = true;
     public bool IsRemoved => !Core.Entities.Entities.Contains(this);
     public virtual Shadow? Shadow => Sprite?.Shadow;
     public float Rotation
@@ -372,6 +384,11 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
     public void Remove()
     {
         Core.Entities.RemoveEntity(this);
+    }
+
+    public void Add()
+    {
+        Core.Entities.AddEntity(this);
     }
 
     public float DistanceTo(Vector2 other)

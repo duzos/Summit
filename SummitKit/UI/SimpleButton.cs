@@ -2,19 +2,20 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SummitKit.Graphics;
+using SummitKit.Physics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SummitKit.Physics;
+namespace SummitKit.UI;
 
 public class SimpleButton : Button
 {
     private Texture2D _pixel;
-    private readonly SpriteFont? _font;
-    private Shadow? _shadow;
+    private readonly SpriteFont _font;
+    private Shadow _shadow;
     private Vector2 _initDims;
     private Vector2 _dims;
     private Vector2 _scale;
@@ -25,10 +26,10 @@ public class SimpleButton : Button
     public Color? Colour { get; set; } = null;
     public Color BaseColour { get; set; } = Color.White;
     public Color HoverColour { get; set; } = Color.LightGray;
-    public string? Text { get; set; }
+    public string Text { get; set; }
     public Vector2 TextPadding { get; set; } = new(20, 20);
     public int Radius { get; set; } = 8;
-    public Action<SimpleButton, GameTime>? OnUpdate { get; set; }
+    public Action<SimpleButton, GameTime> OnUpdate { get; set; }
     public bool Enabled { get => _enabled; set {
             if (value == _enabled) return;
 
@@ -67,7 +68,7 @@ public class SimpleButton : Button
         }
     }
 
-    public Shadow? TextShadow;
+    public Shadow TextShadow;
     public override float Width
     {
         get => _dims.X;
@@ -75,7 +76,7 @@ public class SimpleButton : Button
         {
             _initDims.X = value;
             _dims.X = value * Scale.X;
-            _pixel = CreateRoundedRectangle(Core.Graphics.GraphicsDevice, (int)_dims.X, (int)_dims.Y, Radius, Color.White);
+            _pixel = UIContainer.CreateRoundedRectangle(Core.Graphics.GraphicsDevice, (int)_dims.X, (int)_dims.Y, Radius, Color.White);
         }
     }
     public override float Height
@@ -85,7 +86,7 @@ public class SimpleButton : Button
         {
             _initDims.Y = value;
             _dims.Y = value * Scale.Y;
-                _pixel = CreateRoundedRectangle(Core.Graphics.GraphicsDevice, (int)_dims.X, (int)_dims.Y, Radius, Color.White);
+                _pixel = UIContainer.CreateRoundedRectangle(Core.Graphics.GraphicsDevice, (int)_dims.X, (int)_dims.Y, Radius, Color.White);
             }
     }
     public override Vector2 Scale
@@ -107,42 +108,6 @@ public class SimpleButton : Button
         Scale = Vector2.One;
         Colour = BaseColour;
         _font = font;
-    }
-
-    public static Texture2D CreateRoundedRectangle(GraphicsDevice graphicsDevice, int width, int height, int radius, Color color)
-    {
-        if (width <= 0 || height <= 0 || radius <= 0) return new Texture2D(graphicsDevice, 1, 1);
-
-        Texture2D texture = new Texture2D(graphicsDevice, width, height);
-        Color[] data = new Color[width * height];
-
-        for (int y = 0; y < height; y++)
-        {
-            for (int x = 0; x < width; x++)
-            {
-                bool inside =
-                    (x >= radius && x < width - radius) || // inside horizontal middle
-                    (y >= radius && y < height - radius);  // inside vertical middle
-
-                // check corners
-                int dx = 0, dy = 0;
-                if (x < radius) dx = radius - x;
-                else if (x >= width - radius) dx = x - (width - radius - 1);
-
-                if (y < radius) dy = radius - y;
-                else if (y >= height - radius) dy = y - (height - radius - 1);
-
-                if (dx != 0 || dy != 0)
-                {
-                    inside |= dx * dx + dy * dy <= radius * radius;
-                }
-
-                data[y * width + x] = inside ? color : Color.Transparent;
-            }
-        }
-
-        texture.SetData(data);
-        return texture;
     }
 
 
@@ -199,7 +164,7 @@ public class SimpleButton : Button
         {
             Shadow.Enabled = true;
 
-            Position -= (Shadow.Offset * 0.5F);
+            Position -= Shadow.Offset * 0.5F;
         }
     }
 
@@ -243,7 +208,7 @@ public class SimpleButton : Button
         if (string.IsNullOrEmpty(Text)) return;
 
         var wrapped = Core.Console.WordWrap(Text, Width - 10, _font);
-        float y = Position.Y + (Height / 2);
+        float y = Position.Y + Height / 2;
 
         foreach (var line in wrapped) {
             float scale = 0F;
@@ -252,7 +217,7 @@ public class SimpleButton : Button
             bool over = false;
             while (!over)
             {
-                over = ((textSize * scale).X > Width - TextPadding.X) || (textSize * scale).Y > Height - TextPadding.Y;
+                over = (textSize * scale).X > Width - TextPadding.X || (textSize * scale).Y > Height - TextPadding.Y;
                 if (over) break;
 
                 scale += .1F;
@@ -260,8 +225,8 @@ public class SimpleButton : Button
             textSize *= scale;
 
             var textPosition = new Vector2(
-                Position.X + (Width / 2) - (textSize.X / 2),
-                y - (textSize.Y / 2)
+                Position.X + Width / 2 - textSize.X / 2,
+                y - textSize.Y / 2
             );
 
             TextShadow?.DrawString(

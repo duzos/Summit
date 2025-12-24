@@ -10,10 +10,12 @@ using SummitKit.Graphics;
 using SummitKit.Input;
 using SummitKit.IO;
 using SummitKit.Physics;
+using SummitKit.UI;
 using System;
 using System.Collections;
 using System.Linq;
 using System.Reflection;
+using System.Resources;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Summit
@@ -59,72 +61,140 @@ namespace Summit
             Atlas = TextureAtlas.FromFile(Content, "assets/atlas-definition.xml");
             State = new();
 
-            var button = new SimpleButton(ConsoleFont, but =>
+            CreatePlaySegment();
+
+            _background = Content.Load<Effect>("assets/Background");
+        }
+
+        private static UIContainer CreatePlaySegment()
+        {
+            UIContainer container = new()
+            {
+                BackgroundColour = Color.Transparent
+            };
+            container.Shadow.Enabled = false;
+            container.SetDimensions(520, 100);
+            container.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) - (container.Width / 2), GraphicsDevice.PresentationParameters.BackBufferHeight - 15 - container.Height);
+            container.Add();
+
+            var playText = new UIText(ConsoleFont)
+            {
+                VerticalAlign = UIAlign.Center,
+                HorizontalAlign = UIAlign.Center,
+                TextHorizontalAlign = UIAlign.Center
+            };
+
+            var button = new UIButton(but =>
             {
                 State.PlaySelected();
                 State.Deal();
             });
             button.SetDimensions(200, 100);
+            playText.SetDimensions(button.PreferredLayout.Size.ToVector2() - new Vector2(button.Padding));
             button.Shadow.Enabled = true;
-            button.Scale = Vector2.One;
-            // next to the other button
-            button.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) - button.Width - 55F, GraphicsDevice.PresentationParameters.BackBufferHeight - 15 - button.Height);
-            float lastX = button.Position.X + button.Width;
-            button.Text = "Play";
             button.BaseColour = Color.Blue;
             button.HoverColour = Color.DarkBlue;
             button.OnUpdate = (b, time) => {
-                b.Text = "Play (" + State.RemainingHands + ")";
+                playText.Text = "Play (" + State.RemainingHands + ")";
                 b.Enabled = State.RemainingHands > 0;
             };
-            Entities.AddEntity(button);
+            ((IUIElement)button).AddChild(playText);
+            playText.Add();
+            button.Add();
+            ((IUIElement) container).AddChild(button);
 
-            button = new SimpleButton(ConsoleFont, but =>
+            var sortContainer = new UIContainer()
+            {
+                BackgroundColour = Color.Transparent,
+                Padding = 0,
+                Spacing = 10
+            };
+            sortContainer.SetDimensions(100, 100);
+            sortContainer.Shadow.Enabled = false;
+
+            var sortText = new UIText(ConsoleFont, "Rank")
+            {
+                VerticalAlign = UIAlign.Center,
+                HorizontalAlign = UIAlign.Center,
+                TextHorizontalAlign = UIAlign.Center
+            };
+            button = new UIButton(but =>
             {
                 State.MainHand.SortCards(Hand.SortByValue);
                 State.LastSort = Hand.SortByValue;
-            });
-            button.SetDimensions(100, 50);
-            button.Scale = Vector2.One;
-            button.Position = new(lastX + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 10 - button.Height);
-            button.Text = "Rank";
+            })
+            {
+                Radius = 8
+            };
+            button.SetDimensions(100, 45);
+            sortText.SetDimensions(button.PreferredLayout.Size.ToVector2() / new Vector2(2, 1));
             button.BaseColour = Color.Orange;
             button.HoverColour = Color.DarkOrange;
-            Entities.AddEntity(button);
+            ((IUIElement) button).AddChild(sortText);
+            ((IUIElement)sortContainer).AddChild(button);
+            sortText.Add();
+            button.Add();
 
-            button = new SimpleButton(ConsoleFont, but =>
+            sortText = new UIText(ConsoleFont, "Suit")
+            {
+                VerticalAlign = UIAlign.Center,
+                HorizontalAlign = UIAlign.Center,
+                TextHorizontalAlign = UIAlign.Center
+            };
+            button = new UIButton(but =>
             {
                 State.MainHand.SortCards(Hand.SortBySuit);
                 State.LastSort = Hand.SortBySuit;
-            });
-            button.SetDimensions(100, 50);
-            button.Scale = Vector2.One;
-            button.Position = new(lastX + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 15 - button.Height - button.Height);
-            button.Text = "Suit";
-            lastX += button.Width + 5;
+            })
+            {
+                Radius = 8
+            };
+            button.SetDimensions(100, 45);
+            sortText.SetDimensions(button.PreferredLayout.Size.ToVector2() / new Vector2(2, 1));
             button.BaseColour = Color.Orange;
             button.HoverColour = Color.DarkOrange;
-            Entities.AddEntity(button);
+            ((IUIElement)button).AddChild(sortText);
+            ((IUIElement)sortContainer).AddChild(button);
+            sortText.Add();
+            button.Add();
 
-            button = new SimpleButton(ConsoleFont, but =>
+            sortContainer.Add();
+            ((IUIElement)container).AddChild(sortContainer);
+
+            var discardText = new UIText(ConsoleFont)
+            {
+                VerticalAlign = UIAlign.Center,
+                HorizontalAlign = UIAlign.Center,
+                TextHorizontalAlign = UIAlign.Center
+            };
+
+            button = new UIButton(but =>
             {
                 State.DiscardSelected();
             });
             button.SetDimensions(200, 100);
-            button.Position = new(lastX + 5, GraphicsDevice.PresentationParameters.BackBufferHeight - 15 - button.Height);
+            discardText.SetDimensions(button.PreferredLayout.Size.ToVector2() - new Vector2(button.Padding));
             button.Shadow.Enabled = true;
-            button.Text = "Discard";
             button.BaseColour = Color.Red;
             button.HoverColour = Color.DarkRed;
             button.OnUpdate = (b, time) => {
-                b.Text = "Discard (" + State.RemainingDiscards + ")";
-
+                discardText.Text = "Discard (" + State.RemainingDiscards + ")";
                 b.Enabled = State.RemainingDiscards > 0;
             };
+            ((IUIElement)button).AddChild(discardText);
+            discardText.Add();
+            button.Add();
+            ((IUIElement)container).AddChild(button);
 
-            Entities.AddEntity(button);
+            return container;
+        }
 
-            _background = Content.Load<Effect>("assets/Background");
+        public override void ToggleFullScreen()
+        {
+            base.ToggleFullScreen();
+
+            // todo reload all entities
+            State.OnLoad();
         }
 
         protected override void Update(GameTime gameTime)

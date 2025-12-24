@@ -30,11 +30,11 @@ public class Shadow {
         Enabled = true;
     }
 
-    public void Draw(SpriteBatch spriteBatch, Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, float rotation, Vector2 origin, SpriteEffects effects)
+    public void Draw(SpriteBatch spriteBatch, Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, float rotation, Vector2 origin, SpriteEffects effects, float layerDepth = 0.01F)
     {
         if (!Enabled) return;
         Enabled = false;
-        float layerDepth = 0.0F;
+        layerDepth -= 0.01F;
         Vector2 position = new Vector2(destinationRectangle.X, destinationRectangle.Y) + Offset;
         Rectangle newDestinationRectangle = new Rectangle((int)position.X, (int)position.Y, destinationRectangle.Width, destinationRectangle.Height);
         spriteBatch.Draw(texture, newDestinationRectangle, sourceRectangle, Colour, rotation, origin, effects, layerDepth);

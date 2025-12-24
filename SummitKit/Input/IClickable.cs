@@ -10,6 +10,8 @@ namespace SummitKit.Input;
 
 public interface IClickable
 {
+    bool Clickable { get; set; }
+
     void OnClick(MouseState state);
     void OnRelease(MouseState state, bool wasBeingDragged);
     void OnHover(MouseState state);
