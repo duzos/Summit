@@ -77,11 +77,15 @@ namespace Summit
             container.Position = new((GraphicsDevice.PresentationParameters.BackBufferWidth / 2) - (container.Width / 2), GraphicsDevice.PresentationParameters.BackBufferHeight - 15 - container.Height);
             container.Add();
 
-            var playText = new UIText(ConsoleFont)
+            var text = new UIText(ConsoleFont)
             {
                 VerticalAlign = UIAlign.Center,
                 HorizontalAlign = UIAlign.Center,
-                TextHorizontalAlign = UIAlign.Center
+                TextHorizontalAlign = UIAlign.Center,
+                OnUpdate = (t) =>
+                {
+                    t.Text = "Play (" + State.RemainingHands + ")";
+                }
             };
 
             var button = new UIButton(but =>
@@ -90,16 +94,15 @@ namespace Summit
                 State.Deal();
             });
             button.SetDimensions(200, 100);
-            playText.SetDimensions(button.PreferredLayout.Size.ToVector2() - new Vector2(button.Padding));
+            text.SetDimensions(button.PreferredLayout.Size.ToVector2() - new Vector2(button.Padding));
             button.Shadow.Enabled = true;
             button.BaseColour = Color.Blue;
             button.HoverColour = Color.DarkBlue;
             button.OnUpdate = (b, time) => {
-                playText.Text = "Play (" + State.RemainingHands + ")";
                 b.Enabled = State.RemainingHands > 0;
             };
-            ((IUIElement)button).AddChild(playText);
-            playText.Add();
+            ((IUIElement)button).AddChild(text);
+            text.Add();
             button.Add();
             ((IUIElement) container).AddChild(button);
 
@@ -161,11 +164,15 @@ namespace Summit
             sortContainer.Add();
             ((IUIElement)container).AddChild(sortContainer);
 
-            var discardText = new UIText(ConsoleFont)
+            text = new UIText(ConsoleFont)
             {
                 VerticalAlign = UIAlign.Center,
                 HorizontalAlign = UIAlign.Center,
-                TextHorizontalAlign = UIAlign.Center
+                TextHorizontalAlign = UIAlign.Center,
+                OnUpdate = (t) =>
+                    {
+                        t.Text = "Discard (" + State.RemainingDiscards + ")";
+                    }
             };
 
             button = new UIButton(but =>
@@ -173,16 +180,15 @@ namespace Summit
                 State.DiscardSelected();
             });
             button.SetDimensions(200, 100);
-            discardText.SetDimensions(button.PreferredLayout.Size.ToVector2() - new Vector2(button.Padding));
+            text.SetDimensions(button.PreferredLayout.Size.ToVector2() - new Vector2(button.Padding));
             button.Shadow.Enabled = true;
             button.BaseColour = Color.Red;
             button.HoverColour = Color.DarkRed;
             button.OnUpdate = (b, time) => {
-                discardText.Text = "Discard (" + State.RemainingDiscards + ")";
                 b.Enabled = State.RemainingDiscards > 0;
             };
-            ((IUIElement)button).AddChild(discardText);
-            discardText.Add();
+            ((IUIElement)button).AddChild(text);
+            text.Add();
             button.Add();
             ((IUIElement)container).AddChild(button);
 

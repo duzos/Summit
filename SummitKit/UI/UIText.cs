@@ -15,12 +15,21 @@ public class UIText : UIContainer
     public string Text { get; set; }
     public UIAlign TextHorizontalAlign { get; set; } = UIAlign.Center;
     public UIAlign TextVerticalAlign { get; set; } = UIAlign.Center;
+    public Action<UIText>? OnUpdate { get; set; }
 
-    public UIText(SpriteFont font, string text = "") : base()
+    public UIText(SpriteFont font, string text = "", Action<UIText>? onUpdate = null) : base()
     {
         _font = font;
         Text = text;
         Shadow.Offset = new(2, 3);
+        OnUpdate = onUpdate;
+    }
+
+    public override void Update(GameTime deltaTime)
+    {
+        base.Update(deltaTime);
+
+        OnUpdate?.Invoke(this);
     }
 
     public override void Draw(SpriteBatch spriteBatch)
