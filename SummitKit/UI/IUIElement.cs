@@ -81,7 +81,6 @@ public interface IUIElement : IDraw, IUpdating, IPositioned
                     e.PreferredLayout.Width,
                     e.PreferredLayout.Height
                 );
-                e.LayerDepth = LayerDepth + 0.025F;
 
                 x += e.PreferredLayout.Width + Spacing;
             }
@@ -104,6 +103,7 @@ public interface IUIElement : IDraw, IUpdating, IPositioned
 
             row.Add(child);
 
+            child.LayerDepth = LayerDepth + 0.025F;
             child.RecalculateLayout();
 
             cursorX += w + Spacing;

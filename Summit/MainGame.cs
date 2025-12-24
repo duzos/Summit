@@ -192,6 +192,8 @@ namespace Summit
             button.Add();
             ((IUIElement)container).AddChild(button);
 
+            ((IUIElement)container).RecalculateLayout();
+
             return container;
         }
 
