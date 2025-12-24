@@ -142,18 +142,18 @@ namespace Summit
 
             float totalTime = (float)gameTime.TotalGameTime.TotalSeconds;
             // Set animation parameters
-            _background.Parameters["time"]?.SetValue(totalTime);
-            _background.Parameters["spin_time"]?.SetValue(totalTime * 0.1f); // can tweak speed
-            _background.Parameters["spin_amount"].SetValue(0.25F);           // full swirl
-            _background.Parameters["contrast"].SetValue(1);             // default contrast
+            _background.Parameters["iTime"]?.SetValue(totalTime);
+            _background.Parameters["SpiralFactor"]?.SetValue(1.5F);
+            _background.Parameters["RotationSpeed"]?.SetValue(0.15F);
+            _background.Parameters["RingSpacing"]?.SetValue(0.25F);
 
             // Set colors (RGBA)
-            _background.Parameters["colour3"].SetValue(new Vector4(0.18f, 0.37f, 0.29f, 1f)); // dark felt
-            _background.Parameters["colour2"].SetValue(new Vector4(0.23f, 0.46f, 0.36f, 1f));  // lighter green
-            _background.Parameters["colour1"].SetValue(new Vector4(0.27f, 0.52f, 0.42f, 1f));  // subtle highlight
+            //_background.Parameters["colour3"].SetValue(new Vector4(0.18f, 0.37f, 0.29f, 1f)); // dark felt
+            //_background.Parameters["colour2"].SetValue(new Vector4(0.23f, 0.46f, 0.36f, 1f));  // lighter green
+            //_background.Parameters["colour1"].SetValue(new Vector4(0.27f, 0.52f, 0.42f, 1f));  // subtle highlight
 
             // Pass screen size
-            _background.Parameters["screenSize"].SetValue(new Vector2(
+            _background.Parameters["iResolution"].SetValue(new Vector2(
                 GraphicsDevice.Viewport.Width,
                 GraphicsDevice.Viewport.Height
             ));
