@@ -48,12 +48,21 @@ public class Hand : IPositioned, IDraggable, IDraw
     [JsonIgnore]
     private readonly HashSet<CardEntity> _selectedSet;
     private Vector2 _centrePos;
+    [JsonIgnore]
     public float Width { get; set; } = 512;
+    [JsonIgnore]
     public float Height { get; private set; } = 50;
+    [JsonIgnore]
     public float LayerDepth { get; set; } = 0.01F;
     public Rectangle AABB { get; private set; }
     private Texture2D _pixel;
-    public float Padding { get; set; } = 8;
+    [JsonIgnore]
+    public float Padding { get; set; } = 30;
+    [JsonIgnore]
+    public bool Backdrop { get; set; } = true;
+    [JsonIgnore]
+    public float Spacing { get; set; } = 30;
+    [JsonIgnore]
     public Vector2 Position
     {
         get => _centrePos;
@@ -229,53 +238,51 @@ public class Hand : IPositioned, IDraggable, IDraw
         if (count == 0)
             return;
 
-        var entities = _entities.Values;
+        float totalItemWidth = _entities.Values.Sum(e => e.Width);
 
-        if (count == 1)
-        {
-            if (!entities.First().IsBeingDragged)
-            {
-                entities.First().MoveTo(new(Position.X - entities.First().Width / 2, Position.Y), indexToSpeed.Invoke(0), indexToDelay.Invoke(0), callback: target => { moveCallback?.Invoke(entities.First()); }, replaceExisting: false);
-            }
+        // Gap logic (minimal spacing, overlap only if needed)
+        float gap = totalItemWidth + Spacing * (count - 1) <= Width
+        ? Spacing
+        : (Width - totalItemWidth) / (count - 1);
 
-            return;
-        }
-
-        float totalItemWidth = entities.Sum(i => i.Width);
-
-        // Space left for gaps
-        float availableSpace = Width - totalItemWidth;
-
-        // Positive = spacing, Negative = overlap
-        float gap = availableSpace / (count - 1);
-
-        // Total width including gaps
+        // Total layout width
         float layoutWidth = totalItemWidth + gap * (count - 1);
 
-        // Left edge of the whole layout
-        float leftEdge = Position.X - layoutWidth / 2f;
+        // Start at center of first card
+        float x = Position.X - layoutWidth / 2f + (_entities.Values.First().Width / 2);
 
-        float x = leftEdge;
+        // Vertical center of the hand
+        float yBase = Position.Y;
 
         int j = 0;
         for (int i = 0; i < Cards.Count; i++)
         {
-            if (!_entities.ContainsKey(_cards[i]))
+            if (!_entities.TryGetValue(_cards[i], out var entity))
                 continue;
-            j++;
-            var entity = _entities[_cards[i]];
 
-            // Convert left-edge placement to centre placement
+            j++;
+
             if (!entity.IsBeingDragged)
             {
                 var entityCopy = entity;
-                    entity.MoveTo(new(x - entity.Width / 2, Position.Y), indexToSpeed.Invoke(j), indexToDelay.Invoke(j), callback: target => { moveCallback?.Invoke(entityCopy); }, replaceExisting: false);
+                entity.MoveTo(
+                    new Vector2(
+                        x,
+                        yBase - (entity.IsSelected ? 10f : 0f)
+                    ),
+                    indexToSpeed(j),
+                    indexToDelay(j),
+                    centered: true,
+                    callback: _ => moveCallback?.Invoke(entityCopy),
+                    replaceExisting: false
+                );
             }
 
             if (entity.Sprite != null)
             {
-                entity.Sprite.LayerDepth = 0.1F + ((float)j) / (_cards.Count + 1);
+                entity.Sprite.LayerDepth = 0.1f + (float)j / (_cards.Count + 1);
             }
+
             x += entity.Width + gap;
         }
 
@@ -292,7 +299,7 @@ public class Hand : IPositioned, IDraggable, IDraw
         if (!_entities.ContainsValue(entity))
             return;
 
-        CardEntity nearest = Core.Entities.GetNearestEntity(Core.Input.Mouse.Position.ToVector2(), float.MaxValue, val => val != entity && val is CardEntity valCard && _entities.ContainsValue(valCard)) as CardEntity;
+        CardEntity? nearest = Core.Entities.GetNearestEntity(Core.Input.Mouse.Position.ToVector2(), float.MaxValue, val => val != entity && val is CardEntity valCard && _entities.ContainsValue(valCard)) as CardEntity;
        
         int curIndex = _cards.IndexOf(entity.Data);
         int targetIndex = nearest != null ? _cards.IndexOf(nearest.Data) : curIndex;
@@ -439,8 +446,8 @@ public class Hand : IPositioned, IDraggable, IDraw
     {
         Height = _entities.Values.Max(e => e.Height);
         AABB = new(
-            (int)(Position.X - Width / 2 - Padding / 2),
-            (int)(Position.Y + Height / 2 + Padding / 2),
+            (int)(Position.X - (Width / 2) - (Padding / 2)),
+            (int)(Position.Y - (Height / 2) - (Padding / 2)),
             (int)(Width + Padding),
             (int)(Height + Padding)
         );
@@ -450,7 +457,17 @@ public class Hand : IPositioned, IDraggable, IDraw
 
     public void Draw(SpriteBatch batch)
     {
+        if (!Backdrop) return;
+
+        // draw a little dot at the position
+        if (IUIElement.Debug)
+        {
+            int thickness = IUIElement.Thickness;
+            int offset = thickness / 2;
+            batch.Draw(_pixel, new Rectangle((int)Position.X - offset, (int)Position.Y - offset, thickness, thickness), null, Color.Red, 0F, Vector2.Zero, SpriteEffects.None, 1);
+            batch.Draw(_pixel, new Rectangle((int)(Position.X - (Width / 2)), (int)(Position.Y - (Height / 2)), (int)Width, (int)Height), null, Color.Red * 0.1F, 0F, Vector2.Zero, SpriteEffects.None, 1);
+        }
         // draw a grey translucent rectangle behind the hand
-        batch.Draw(_pixel, AABB, null, Color.Gray * 0.5F, 0F, Vector2.Zero, SpriteEffects.None, LayerDepth);
+        batch.Draw(_pixel, AABB, null, Color.Black * 0.5F, 0F, Vector2.Zero, SpriteEffects.None, LayerDepth);
     }
 }

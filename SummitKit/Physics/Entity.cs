@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using SummitKit.Graphics;
 using SummitKit.Input;
+using SummitKit.UI;
 using System;
 using System.Formats.Tar;
 using System.Linq;
@@ -286,7 +287,14 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
 
     public virtual void Draw(SpriteBatch batch)
     {
-        Sprite?.Draw(batch, (Vector2)(Position + Sprite?.Origin * 2));
+        Sprite?.Draw(batch, (Vector2)(Position + (AABB.Size.ToVector2() / 2)));
+
+        if (IUIElement.Debug)
+        {
+            var _pixel = new Texture2D(Core.GraphicsDevice, 1, 1);
+            _pixel.SetData([Color.White]);
+            batch.Draw(_pixel, AABB, Color.Red * 0.5F);
+        }
     }
 
     public virtual void OnClick(MouseState state)
@@ -340,7 +348,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
 
     public void MoveTo(Vector2 to, TimeSpan duration, TimeSpan delay, Action<ITarget<Vector2>> callback = null, bool centered = true, bool replaceExisting = true, InterpolationType type = InterpolationType.Smooth)
     {
-        var target = new InterpolatedTarget<Vector2>(to + (centered ? new Vector2(Width, Height) * 0.5F : Vector2.Zero), Position, (pos) => Position = pos, duration, delay, Vector2.Lerp, type, callback);
+        var target = new InterpolatedTarget<Vector2>(to - (centered ? new Vector2(Width, Height) * 0.5F : Vector2.Zero), Position, (pos) => Position = pos, duration, delay, Vector2.Lerp, type, callback);
         MoveTo(target, replaceExisting);
     }
 
@@ -353,7 +361,18 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
 
     public void ScaleTo(Vector2 to, TimeSpan duration, TimeSpan delay, Action<ITarget<Vector2>> callback = null, bool replaceExisting = true, InterpolationType type = InterpolationType.Smooth)
     {
-        var target = new InterpolatedTarget<Vector2>(to, Scale, (scale) => Scale = scale, duration, delay, Vector2.Lerp, type, callback);
+        var target = new InterpolatedTarget<Vector2>(to, Scale, (scale) => Scale = scale, duration, delay, Vector2.Lerp, type, callback += t =>
+        {
+            if (MoveTarget is InterpolatedTarget<Vector2> interpolated)
+            {
+                // calculate new target
+                TimeSpan span = (interpolated.Duration - (interpolated.Delay)) * (interpolated.Progress);
+
+                if (span <= TimeSpan.Zero) return;
+
+                MoveTo(interpolated.To, span, TimeSpan.Zero, interpolated.Callback, true, true, interpolated.Type);
+            }
+        });
         ScaleTo(target, replaceExisting);
     }
 
@@ -375,6 +394,8 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         if (curW != _cachedWidthInt || curH != _cachedHeightInt)
         {
             _aabb = new Rectangle(_aabb.X, _aabb.Y, curW, curH);
+
+
 
             _cachedWidthInt = curW;
             _cachedHeightInt = curH;

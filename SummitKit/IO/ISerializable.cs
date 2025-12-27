@@ -37,6 +37,8 @@ public interface ISerializable<T> where T : class, ISerializable<T>
         foreach (var prop in typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
             if (!prop.CanWrite) continue;
+            if (prop.GetCustomAttribute<JsonIgnoreAttribute>() != null)
+                continue;
             var value = prop.GetValue(loaded);
             prop.SetValue(this, value);
         }

@@ -64,9 +64,10 @@ public class GameState : ISerializable<GameState>
     {
         MainDeck.Shuffle();
         PlayedHand.Draggable = false;
+        PlayedHand.Backdrop = false;
 
-        MainHand.Position = new(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height / 2);
-        PlayedHand.Position = new Vector2(Core.GraphicsDevice.Viewport.Width / 2, 100);
+        PlayedHand.Position = new(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height / 2 - 100);
+        MainHand.Position = new Vector2(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height - 200);
     }
 
     public bool PlaySelected(bool force = false)
@@ -80,11 +81,11 @@ public class GameState : ISerializable<GameState>
             card.Draggable = false;
             MainHand.RemoveCard(card);
             PlayedHand.AddCard(card);
-            card.ScaleTo(card.Scale * 1.1F, TimeSpan.FromSeconds(0.1F), TimeSpan.FromSeconds(0.25F));
+            //card.ScaleTo(card.Scale * 1.1F, TimeSpan.FromSeconds(0.1F), TimeSpan.FromSeconds(0.25F));
         }
         Deal();
         DiscardDeck.AddAll(PlayedHand.Entities);
-        PlayedHand.UpdatePositions();
+        PlayedHand.UpdatePositions(i => TimeSpan.FromSeconds(0.25F), i => TimeSpan.FromSeconds(0.1));
         RemainingHands--;
 
         MainHand.UpdatePositions(i => TimeSpan.FromSeconds(0.25), i => TimeSpan.FromSeconds(0.25F));

@@ -22,6 +22,7 @@ public class InterpolatedTarget<T>(T to, T from, Action<T> setter, TimeSpan dura
     public Action<T> SetPosition { get; set; } = setter;
     public InterpolationType Type { get; init; } = type;
     public Action<ITarget<T>> Callback { get; set; } = callback;
+    public float Progress => (float)((_elapsed - Delay) / (Duration - Delay));
     private TimeSpan _elapsed = TimeSpan.Zero;
     private Func<T, T, float, T> Lerp { get; init; } = lerp;
 
