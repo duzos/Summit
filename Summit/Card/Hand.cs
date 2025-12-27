@@ -1,7 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Summit.Maths;
 using SummitKit;
+using SummitKit.Graphics;
 using SummitKit.Physics;
+using SummitKit.UI;
 using SummitKit.Util;
 using System;
 using System.Collections.Generic;
@@ -15,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace Summit.Card;
 
-public class Hand : IPositioned, IDraggable
+public class Hand : IPositioned, IDraggable, IDraw
 {
     public static readonly Comparison<CardData> SortByValue = (a, b) =>
     {
@@ -45,7 +48,12 @@ public class Hand : IPositioned, IDraggable
     [JsonIgnore]
     private readonly HashSet<CardEntity> _selectedSet;
     private Vector2 _centrePos;
-    public float Spacing = -15F;
+    public float Width { get; set; } = 512;
+    public float Height { get; private set; } = 50;
+    public float LayerDepth { get; set; } = 0.01F;
+    public Rectangle AABB { get; private set; }
+    private Texture2D _pixel;
+    public float Padding { get; set; } = 8;
     public Vector2 Position
     {
         get => _centrePos;
@@ -75,6 +83,7 @@ public class Hand : IPositioned, IDraggable
         _selected = [];
         _selectedSet = [];
         _selected.CollectionChanged += Selected_CollectionChanged;
+        _pixel = UIContainer.CreateRoundedRectangle(Core.Graphics.GraphicsDevice, (int)Width, (int)Height, 8, Color.White);
     }
     [JsonIgnore]
     public IReadOnlyList<CardData> Cards => _cards.AsReadOnly();
@@ -207,54 +216,70 @@ public class Hand : IPositioned, IDraggable
         //UpdatePositions(i => TimeSpan.FromSeconds(0.1 + (0.05 * i)), i => TimeSpan.Zero);
     }
 
-    public void SortCards(Comparison<CardData> comparison)
+
+    public void SortCards(Comparison<CardData> comparison, bool delay = false)
     {
         _cards.Sort(comparison);
-        UpdatePositions(i => TimeSpan.FromSeconds(0.25/* + (0.05 * i)*/), i => TimeSpan.Zero);
+        UpdatePositions(i => TimeSpan.FromSeconds(0.25/* + (0.05 * i)*/), i => (delay ? TimeSpan.FromSeconds(0.15 * i) : TimeSpan.Zero));
     }
 
-    public void UpdatePositions(Func<int, TimeSpan> indexToSpeed, Func<int, TimeSpan> indexToDelay)
+    public void UpdatePositions(Func<int, TimeSpan> indexToSpeed, Func<int, TimeSpan> indexToDelay, Action<CardEntity>? moveCallback = null)
     {
-        float totalWidth = 0f;
-        float[] widths = new float[_cards.Count];
-        for (int i = 0; i < _cards.Count; i++)
-        {
-            if (_entities.ContainsKey(_cards[i]) == false)
-                continue;
+        int count = _entities.Count;
+        if (count == 0)
+            return;
 
-            var entity = _entities[_cards[i]];
-            widths[i] = entity.Width;
-            totalWidth += widths[i];
+        var entities = _entities.Values;
+
+        if (count == 1)
+        {
+            if (!entities.First().IsBeingDragged)
+            {
+                entities.First().MoveTo(new(Position.X - entities.First().Width / 2, Position.Y), indexToSpeed.Invoke(0), indexToDelay.Invoke(0), callback: target => { moveCallback?.Invoke(entities.First()); }, replaceExisting: false);
+            }
+
+            return;
         }
 
-        if (_cards.Count > 1)
-            totalWidth += Spacing * (_cards.Count - 1);
+        float totalItemWidth = entities.Sum(i => i.Width);
 
-        float centerX = Position.X - (widths.Length > 0 ? widths[0] / 2 : 0);
-        float startX = centerX - (totalWidth / 2f);
-        float centerY = Position.Y;
+        // Space left for gaps
+        float availableSpace = Width - totalItemWidth;
 
-        Vector2 pos = new(startX, centerY);
+        // Positive = spacing, Negative = overlap
+        float gap = availableSpace / (count - 1);
 
-        for (int i = 0; i < _cards.Count; i++)
+        // Total width including gaps
+        float layoutWidth = totalItemWidth + gap * (count - 1);
+
+        // Left edge of the whole layout
+        float leftEdge = Position.X - layoutWidth / 2f;
+
+        float x = leftEdge;
+
+        int j = 0;
+        for (int i = 0; i < Cards.Count; i++)
         {
-            if (_entities.ContainsKey(_cards[i]) == false)
+            if (!_entities.ContainsKey(_cards[i]))
                 continue;
-
+            j++;
             var entity = _entities[_cards[i]];
-            entity.ParentHand = this;
 
-            if (!entity.IsBeingDragged) {
-                entity.MoveTo(pos - new Vector2(0, entity.IsSelected ? 10 : 0), indexToSpeed.Invoke(i), indexToSpeed.Invoke(i), replaceExisting: false);
+            // Convert left-edge placement to centre placement
+            if (!entity.IsBeingDragged)
+            {
+                var entityCopy = entity;
+                    entity.MoveTo(new(x - entity.Width / 2, Position.Y), indexToSpeed.Invoke(j), indexToDelay.Invoke(j), callback: target => { moveCallback?.Invoke(entityCopy); }, replaceExisting: false);
             }
 
             if (entity.Sprite != null)
             {
-                entity.Sprite.LayerDepth = 0.1F + ((float)i) / (_cards.Count + 1);
+                entity.Sprite.LayerDepth = 0.1F + ((float)j) / (_cards.Count + 1);
             }
-
-            pos.X += widths[i] + Spacing;
+            x += entity.Width + gap;
         }
+
+        RecalculateAABB();
     }
 
     public void UpdatePositions()
@@ -408,5 +433,24 @@ public class Hand : IPositioned, IDraggable
                 _selected.Move(currentIndex, i);
             }
         }
+    }
+
+    public void RecalculateAABB()
+    {
+        Height = _entities.Values.Max(e => e.Height);
+        AABB = new(
+            (int)(Position.X - Width / 2 - Padding / 2),
+            (int)(Position.Y + Height / 2 + Padding / 2),
+            (int)(Width + Padding),
+            (int)(Height + Padding)
+        );
+
+        _pixel = UIContainer.CreateRoundedRectangle(Core.Graphics.GraphicsDevice, (int)Width, (int)Height, 8, Color.White);
+    }
+
+    public void Draw(SpriteBatch batch)
+    {
+        // draw a grey translucent rectangle behind the hand
+        batch.Draw(_pixel, AABB, null, Color.Gray * 0.5F, 0F, Vector2.Zero, SpriteEffects.None, LayerDepth);
     }
 }

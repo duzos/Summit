@@ -64,7 +64,6 @@ public class GameState : ISerializable<GameState>
     {
         MainDeck.Shuffle();
         PlayedHand.Draggable = false;
-        PlayedHand.Spacing = 10F;
 
         MainHand.Position = new(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height / 2);
         PlayedHand.Position = new Vector2(Core.GraphicsDevice.Viewport.Width / 2, 100);
@@ -195,7 +194,6 @@ public class GameState : ISerializable<GameState>
             .ToList()
             .ForEach(Core.Entities.RemoveEntity);
 
-        PlayedHand.Spacing = 20F;
         SpawnDeckTop();
 
         if (CheckGameEnd()) return;

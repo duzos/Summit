@@ -334,6 +334,9 @@ namespace Summit
             );
             base.Draw(gameTime);
 
+            State.MainHand.Draw(SpriteBatch);
+            State.PlayedHand.Draw(SpriteBatch);
+
             SpriteBatch.End();
         }
     }
