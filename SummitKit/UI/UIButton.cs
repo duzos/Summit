@@ -18,8 +18,6 @@ public class UIButton : UIContainer
     private Color _initBaseColour;
     private Color _initHoverColour;
     private bool _enabled = true;
-    public Action<UIButton, GameTime> OnUpdate { get; set; }
-
     public Color BaseColour { get; set; } = Color.White;
     public Color HoverColour { get; set; } = Color.LightGray;
 
@@ -131,8 +129,6 @@ public class UIButton : UIContainer
     public override void Update(GameTime time)
     {
         base.Update(time);
-
-        OnUpdate?.Invoke(this, time);
     }
 
     public override void Draw(SpriteBatch spriteBatch)

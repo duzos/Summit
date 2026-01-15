@@ -14,6 +14,7 @@ using SummitKit.UI;
 using System;
 using System.Collections;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Reflection;
 using System.Resources;
 using static System.Net.Mime.MediaTypeNames;
@@ -62,10 +63,96 @@ namespace Summit
             State = new();
 
             CreatePlaySegment();
+            CreateStatsSegment();
 
             _background = Content.Load<Effect>("assets/Background");
         }
 
+
+        /// <summary>
+        /// This is the segment that shows current stats like score, hands left, etc.
+        /// </summary>
+        /// <returns></returns>
+        private static UIContainer CreateStatsSegment()
+        {
+            UIContainer container = new()
+            {
+                BackgroundColour = Color.DarkGray,
+                Radius = 1
+            };
+            container.Shadow.Enabled = false;
+            container.CollidesWithWindowEdges = false;
+            container.HasCollisions = false;
+            // full height
+            container.SetDimensions(300, GraphicsDevice.PresentationParameters.BackBufferHeight);
+            container.Position = new(15, (GraphicsDevice.PresentationParameters.BackBufferHeight / 2) - (container.Height / 2));
+            container.Add();
+
+            // Container to show scores (top half of primary)
+            UIContainer scores = new UIContainer()
+            {
+
+                VerticalAlign = UIAlign.Center,
+                HorizontalAlign = UIAlign.Center,
+                BackgroundColour = Color.Transparent
+            };
+            scores.SetDimensions((container.PreferredLayout.Size.ToVector2() - new Vector2(container.Padding)) / new Vector2(1.1F, 2.1F));
+            ((IUIElement)container).AddChild(scores);
+            scores.Add();
+
+            // top half of scores
+            UIContainer targetScore = new()
+            {
+
+                VerticalAlign = UIAlign.Center,
+                HorizontalAlign = UIAlign.Center,
+                BackgroundColour = Color.Orange
+            };
+            targetScore.SetDimensions((scores.PreferredLayout.Size.ToVector2() - new Vector2(scores.Padding)) / new Vector2(1.1F, 2.1F));
+            ((IUIElement)scores).AddChild(targetScore);
+            targetScore.Add();
+            UIText targetScoreText = new(ConsoleFont)
+            {
+                VerticalAlign = UIAlign.Center,
+                HorizontalAlign = UIAlign.Center,
+                TextHorizontalAlign = UIAlign.Center,
+                OnUpdate = (t, gameTime) =>
+                {
+                    ((UIText)t).Text = "Target: " + State.TargetScore;
+                }
+
+            };
+            targetScoreText.SetDimensions(targetScore.PreferredLayout.Size.ToVector2() - new Vector2(targetScore.Padding));
+            targetScoreText.Add();
+            ((IUIElement)targetScore).AddChild(targetScoreText);
+
+            // bottom half of scores
+            UIContainer currentScore = new()
+            {
+
+                VerticalAlign = UIAlign.Center,
+                HorizontalAlign = UIAlign.Center,
+                BackgroundColour = Color.Green
+            };
+            currentScore.SetDimensions((scores.PreferredLayout.Size.ToVector2() - new Vector2(scores.Padding)) / new Vector2(1.1F, 2.1F));
+            ((IUIElement)scores).AddChild(currentScore);
+            currentScore.Add();
+            UIText currentScoreText = new(ConsoleFont)
+            {
+                VerticalAlign = UIAlign.Center,
+                HorizontalAlign = UIAlign.Center,
+                TextHorizontalAlign = UIAlign.Center,
+                OnUpdate = (t, gameTime) =>
+                {
+                    ((UIText)t).Text = "Score: " + State.Score;
+                }
+            };
+            currentScoreText.SetDimensions(currentScore.PreferredLayout.Size.ToVector2() - new Vector2(currentScore.Padding));
+            currentScoreText.Add();
+            ((IUIElement)currentScore).AddChild(currentScoreText);
+
+            return container;
+        }
         private static UIContainer CreatePlaySegment()
         {
             UIContainer container = new()
@@ -82,9 +169,9 @@ namespace Summit
                 VerticalAlign = UIAlign.Center,
                 HorizontalAlign = UIAlign.Center,
                 TextHorizontalAlign = UIAlign.Center,
-                OnUpdate = (t) =>
+                OnUpdate = (t, gameTime) =>
                 {
-                    t.Text = "Play (" + State.RemainingHands + ")";
+                    ((UIText) t).Text = "Play (" + State.RemainingHands + ")";
                 }
             };
 
@@ -99,7 +186,7 @@ namespace Summit
             button.BaseColour = Color.Blue;
             button.HoverColour = Color.DarkBlue;
             button.OnUpdate = (b, time) => {
-                b.Enabled = State.RemainingHands > 0;
+                ((UIButton)b).Enabled = State.RemainingHands > 0;
             };
             ((IUIElement)button).AddChild(text);
             text.Add();
@@ -169,9 +256,9 @@ namespace Summit
                 VerticalAlign = UIAlign.Center,
                 HorizontalAlign = UIAlign.Center,
                 TextHorizontalAlign = UIAlign.Center,
-                OnUpdate = (t) =>
+                OnUpdate = (t, gameTime) =>
                     {
-                        t.Text = "Discard (" + State.RemainingDiscards + ")";
+                        ((UIText)t).Text = "Discard (" + State.RemainingDiscards + ")";
                     }
             };
 
@@ -185,7 +272,7 @@ namespace Summit
             button.BaseColour = Color.Red;
             button.HoverColour = Color.DarkRed;
             button.OnUpdate = (b, time) => {
-                b.Enabled = State.RemainingDiscards > 0;
+                ((UIButton)b).Enabled = State.RemainingDiscards > 0;
             };
             ((IUIElement)button).AddChild(text);
             text.Add();
@@ -240,46 +327,6 @@ namespace Summit
             SpriteBatch.End();
 
             SpriteBatch.Begin(sortMode: SpriteSortMode.FrontToBack, samplerState: SamplerState.PointClamp);
-                
-            string score = State.Score.ToString();
-            SpriteBatch.DrawString(
-                _font,                   // font
-                "Current\n" + score,     // text
-                new(10, 210),           // position
-                Color.White,             // color
-                0.0F,
-                Vector2.Zero,
-                5.0F,
-                SpriteEffects.None,
-                0.0f
-            );
-
-            SpriteBatch.DrawString(
-                _font,                   // font
-                "Target\n" + State.TargetScore.ToString(),     // text
-                new(10, 50),           // position
-                Color.White,             // color
-                0.0F,
-                Vector2.Zero,
-                5.0F,
-                SpriteEffects.None,
-                0.0f
-            );
-
-            if (State.PlayedScore.HasValue)
-            {
-                SpriteBatch.DrawString(
-                    _font,                   // font
-                    State.PlayedScore.Value.ToString(),     // text
-                    new(GraphicsDevice.Viewport.Width / 2, 100),           // position
-                    Color.White,             // color
-                    0.0F,
-                    _font.MeasureString(State.PlayedScore.Value.ToString()) * 0.5F,
-                    5.0F,
-                    SpriteEffects.None,
-                    0.0f
-                );
-            }
 
             SpriteBatch.DrawString(
                 _font,
