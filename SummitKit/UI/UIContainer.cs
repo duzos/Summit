@@ -17,6 +17,8 @@ public class UIContainer : Entity, IUIElement
     private float _layerDepth;
     protected List<IUIElement> _children = [];
 
+    public Action<UIContainer, GameTime> OnUpdate { get; set; }
+
     public UIContainer() : base(null!)
     {
         Scale = Vector2.One;
@@ -125,6 +127,7 @@ public class UIContainer : Entity, IUIElement
 
     public override void Update(GameTime deltaTime)
     {
+        OnUpdate?.Invoke(this, deltaTime);
     }
 
     public override void Draw(SpriteBatch spriteBatch)

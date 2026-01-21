@@ -108,8 +108,8 @@ public class Core : Game
 
         if (Graphics.IsFullScreen)
         {
-            Graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
-            Graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
+            //Graphics.PreferredBackBufferWidth = GraphicsDevice.DisplayMode.Width;
+            //Graphics.PreferredBackBufferHeight = GraphicsDevice.DisplayMode.Height;
         } else
         {
             Graphics.PreferredBackBufferWidth = 1280;

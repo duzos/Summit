@@ -63,6 +63,10 @@ public class GameState : ISerializable<GameState>
     public GameState()
     {
         MainDeck.Shuffle();
+<<<<<<< HEAD
+=======
+
+>>>>>>> 66c5981ee3f9fe3076ee2829a1cd3600111d8348
         OnLoad();
     }
 
@@ -198,6 +202,12 @@ public class GameState : ISerializable<GameState>
             .ForEach(Core.Entities.RemoveEntity);
 
         SpawnDeckTop();
+
+        PlayedHand.Draggable = false;
+        PlayedHand.Backdrop = false;
+
+        PlayedHand.Position = new(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height / 2 - 100);
+        MainHand.Position = new Vector2(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height - 200);
 
         if (CheckGameEnd()) return;
 
