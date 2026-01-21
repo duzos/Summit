@@ -63,10 +63,6 @@ public class GameState : ISerializable<GameState>
     public GameState()
     {
         MainDeck.Shuffle();
-<<<<<<< HEAD
-=======
-
->>>>>>> 66c5981ee3f9fe3076ee2829a1cd3600111d8348
         OnLoad();
     }
 
