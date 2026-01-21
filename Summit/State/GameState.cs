@@ -63,11 +63,7 @@ public class GameState : ISerializable<GameState>
     public GameState()
     {
         MainDeck.Shuffle();
-        PlayedHand.Draggable = false;
-        PlayedHand.Backdrop = false;
-
-        PlayedHand.Position = new(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height / 2 - 100);
-        MainHand.Position = new Vector2(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height - 200);
+        OnLoad();
     }
 
     public bool PlaySelected(bool force = false)
@@ -190,7 +186,13 @@ public class GameState : ISerializable<GameState>
     public void OnLoad()
     {
         // kill all old card entities
-        
+
+        PlayedHand.Draggable = false;
+        PlayedHand.Backdrop = false;
+
+        PlayedHand.Position = new(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height / 2 - 100);
+        MainHand.Position = new Vector2(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height - 200);
+
         Core.Entities.Entities.Where(e => e is CardEntity)
             .ToList()
             .ForEach(Core.Entities.RemoveEntity);
