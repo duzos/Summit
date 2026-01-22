@@ -59,7 +59,7 @@ public class GameState : ISerializable<GameState>
     }
 
     [JsonIgnore]
-    public TokenExpression.ResolveProfile ResolveProfile { get; set; } = TokenExpression.ResolveProfiles.BIDMAS;
+    public TokenExpression.ResolveProfile ResolveProfile { get; set; } = TokenExpression.ResolveProfiles.LeftToRight;
     public GameState()
     {
         MainDeck.Shuffle();
@@ -88,6 +88,7 @@ public class GameState : ISerializable<GameState>
         MainHand.Draggable = false;
         TrySave();
 
+        int index = 0;
         Scheduler.Delay(() =>
         {
             PlayedHand.Trigger(ResolveProfile, total =>
@@ -109,8 +110,10 @@ public class GameState : ISerializable<GameState>
                 }, TimeSpan.FromSeconds(1));
             }, (step, card) =>
             {
-                card.Trigger();
+                card.Trigger(index);
                 PlayedScore = (float) step.After;
+
+                index++;
             });
         },TimeSpan.FromSeconds(1));
 
@@ -233,7 +236,7 @@ public class GameState : ISerializable<GameState>
         entity.HasCollisions = false;
         entity.Sprite.LayerDepth = 0.1F;
         entity.CollidesWithWindowEdges = false;
-        entity.Position = new Vector2(Core.GraphicsDevice.PresentationParameters.BackBufferWidth - 100, Core.GraphicsDevice.PresentationParameters.BackBufferHeight -150);
+        entity.Position = new Vector2(Core.GraphicsDevice.PresentationParameters.BackBufferWidth - 110, Core.GraphicsDevice.PresentationParameters.BackBufferHeight -160);
         var pos = entity.Position;
         Core.Entities.AddEntity(entity);
 

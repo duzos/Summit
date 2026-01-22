@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Input;
 using SummitKit;
 using SummitKit.Graphics;
 using SummitKit.Physics;
+using SummitKit.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,6 +30,8 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
         {
             Shadow.Enabled = ParentHand.Selected.Contains(this);
         }
+
+        PlayPlace();
     }
 
     public bool Backwards
@@ -60,6 +63,10 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
             Backwards = !val;
             ScaleTo(originalScale, backDur, TimeSpan.Zero);
         }, replaceExisting: true);
+
+        // play flick after random time within the duration, but always after delay
+        TimeSpan flick = delay + TimeSpan.FromMilliseconds(MainGame.State.Random.Next((int)dur.TotalMilliseconds));
+        Scheduler.Delay(PlayFlick, flick);
     }
 
     public override void Update(GameTime time)
@@ -128,7 +135,7 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
         }
     }
 
-    public void Trigger()
+    public void Trigger(int index = 0)
     {
         const float minAngle = 20F;
         const float maxAngle = 45F;
@@ -138,6 +145,22 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
 
         _desiredRotation = MathHelper.ToRadians(angle);
 
+        PlayTrigger(index);
         //Data.Apply(ref total);
+    }
+
+    public void PlayPlace()
+    {
+        MainGame.CardSounds.PlayPlace();
+    }
+
+    public void PlayFlick()
+    {
+        MainGame.CardSounds.PlayFlick();
+    }
+
+    public void PlayTrigger(int index = 0)
+    {
+        MainGame.CardSounds.PlayTrigger(index);
     }
 }

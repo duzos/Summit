@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using SummitKit.Audio;
 using SummitKit.Command;
 using SummitKit.Input;
 using SummitKit.Physics;
@@ -49,6 +50,8 @@ public class Core : Game
 
     public static Scheduler Scheduler { get; } = new Scheduler();
     public static CoreConsole Console { get; } = new CoreConsole();
+
+    public static AudioManager Audio { get; } = new AudioManager();
 
     /// <summary>
     /// Gets or Sets a value that indicates if the game should exit when the esc key on the keyboard is pressed.
@@ -143,6 +146,13 @@ public class Core : Game
 
         Console.LoadContent();
     }
+
+    protected override void UnloadContent()
+    {
+        base.UnloadContent();
+
+        Audio.Dispose();
+    }
     protected override void Update(GameTime gameTime)
     {
         Scheduler.Update(gameTime);
@@ -164,6 +174,8 @@ public class Core : Game
 
         Entities.Update(gameTime);
         base.Update(gameTime);
+
+        Audio.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)

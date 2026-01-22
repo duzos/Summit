@@ -1,10 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Media;
 using Summit.Card;
 using Summit.Command;
 using Summit.State;
 using SummitKit;
+using SummitKit.Audio;
 using SummitKit.Command;
 using SummitKit.Graphics;
 using SummitKit.Input;
@@ -27,6 +29,8 @@ namespace Summit
 
         public static TextureAtlas Atlas { get; private set; }
         public static GameState State { get; private set; }
+
+        public static CardSounds CardSounds { get; } = new CardSounds();
 
         private SpriteFont _font;
         private Effect _background;
@@ -66,8 +70,25 @@ namespace Summit
             CreateStatsSegment();
 
             _background = Content.Load<Effect>("assets/Background");
+
+            LoadMusic();
+            CardSounds.LoadContent(Content);
         }
 
+        private void LoadMusic()
+        {
+            LoadMusic("cool_vibes");
+            LoadMusic("airport_lounge");
+        }
+
+        private Song LoadMusic(string name)
+        {
+            var song = Content.Load<Song>($"assets/audio/music/{name}");
+            MusicTracker music = Audio.Music;
+            music.AddSong(song);
+
+            return song;
+        }
 
         /// <summary>
         /// This is the segment that shows current stats like score, hands left, etc.

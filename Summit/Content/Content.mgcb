@@ -28,6 +28,60 @@
 /processorParam:TextureFormat=Color
 /build:assets/atlas.png
 
+#begin assets/audio/card/card_flick.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:assets/audio/card/card_flick.wav
+
+#begin assets/audio/card/card_place_1.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:assets/audio/card/card_place_1.wav
+
+#begin assets/audio/card/card_place_2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:assets/audio/card/card_place_2.wav
+
+#begin assets/audio/card/card_place_3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:assets/audio/card/card_place_3.wav
+
+#begin assets/audio/card/card_place_4.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:assets/audio/card/card_place_4.wav
+
+#begin assets/audio/card/card_place_5.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:assets/audio/card/card_place_5.wav
+
+#begin assets/audio/card/card_trigger_1.ogg
+/importer:OggImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:assets/audio/card/card_trigger_1.ogg
+
+#begin assets/audio/music/airport_lounge.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:assets/audio/music/airport_lounge.mp3
+
+#begin assets/audio/music/cool_vibes.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:assets/audio/music/cool_vibes.mp3
+
 #begin assets/Background.fx
 /importer:EffectImporter
 /processor:EffectProcessor
