@@ -4,6 +4,7 @@ using Summit.Card;
 using Summit.Json;
 using Summit.Maths;
 using SummitKit;
+using SummitKit.Audio;
 using SummitKit.IO;
 using SummitKit.Physics;
 using SummitKit.Util;
@@ -113,6 +114,8 @@ public class GameState : ISerializable<GameState>
                 card.Trigger(index);
                 PlayedScore = (float) step.After;
 
+                card.DisplayMessage(PlayedScore.ToString());
+
                 index++;
             });
         },TimeSpan.FromSeconds(1));
@@ -207,6 +210,10 @@ public class GameState : ISerializable<GameState>
 
         PlayedHand.Position = new(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height / 2 - 100);
         MainHand.Position = new Vector2(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height - 200);
+
+        // pick new song
+        MusicTracker musicTracker = Core.Audio.Music;
+        musicTracker.FadeInto(musicTracker.RandomSong!, TimeSpan.FromSeconds(2.5), TimeSpan.FromSeconds(2.5));
 
         if (CheckGameEnd()) return;
 

@@ -137,16 +137,21 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
 
     public void Trigger(int index = 0)
     {
-        const float minAngle = 20F;
-        const float maxAngle = 45F;
-        float angle = MathHelper.Lerp(minAngle, maxAngle, (float) MainGame.State.Random.NextDouble());
-        // randomise sign
-        if (MainGame.State.Random.Next(2) == 0) angle = -angle;
-
-        _desiredRotation = MathHelper.ToRadians(angle);
+        _desiredRotation = MathHelper.ToRadians(RandomAngle());
 
         PlayTrigger(index);
         //Data.Apply(ref total);
+    }
+
+    public static float RandomAngle()
+    {
+        const float minAngle = 20F;
+        const float maxAngle = 45F;
+        float angle = MathHelper.Lerp(minAngle, maxAngle, (float)MainGame.State.Random.NextDouble());
+        // randomise sign
+        if (MainGame.State.Random.Next(2) == 0) angle = -angle;
+
+        return angle;
     }
 
     public void PlayPlace()
@@ -162,5 +167,24 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
     public void PlayTrigger(int index = 0)
     {
         MainGame.CardSounds.PlayTrigger(index);
+    }
+
+    public CardMessage DisplayMessage(string message)
+    {
+        CardMessage msg = new()
+        {
+            Message = message,
+            Font = MainGame.ConsoleFont,
+            Lifetime = TimeSpan.FromSeconds(1),
+            Rotation = RandomAngle()
+        };
+
+        msg.Position = Position + new Vector2(msg.Width / 2, -Height / 2 - 10);
+
+
+        msg.MoveTo(msg.Position + new Vector2(0, -20), TimeSpan.FromSeconds(1), TimeSpan.Zero, centered: false);
+        msg.Add();
+
+        return msg;
     }
 }

@@ -62,4 +62,21 @@ public sealed class CommandContext(Action<string, Color> write)
         }
         return true;
     }
+
+    public bool ParseFloat(string arg, out float val, float? min = null, float? max = null)
+    {
+        if (!float.TryParse(arg, out val))
+        {
+            return Error("Invalid value");
+        }
+        if (min.HasValue && val < min.Value)
+        {
+            return Error($"Value must be at least {min.Value}");
+        }
+        if (max.HasValue && val > max.Value)
+        {
+            return Error($"Value must be at most {max.Value}");
+        }
+        return true;
+    }
 }

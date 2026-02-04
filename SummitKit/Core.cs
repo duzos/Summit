@@ -137,6 +137,7 @@ public class Core : Game
 
         Console.Commands.Register(new HelpCommand(Console.Commands));
         Console.Commands.Register(new DebugUICommand());
+        Console.Commands.RegisterNamespace("SummitKit.Audio", assembly: typeof(FadeSongCommand).Assembly);
         base.Initialize();
     }
 

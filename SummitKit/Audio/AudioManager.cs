@@ -96,6 +96,11 @@ public class AudioManager : IDisposable, IUpdating
         MediaPlayer.IsRepeating = isLooped;
     }
 
+    public void FadeMusic(Song song, TimeSpan fadeIn, TimeSpan fadeOut)
+    {
+        Music.FadeInto(song, fadeOut, fadeIn);
+    }
+
     public void Pause()
     {
         MediaPlayer.Pause();
@@ -142,6 +147,18 @@ public class AudioManager : IDisposable, IUpdating
         else
         {
             Mute();
+        }
+    }
+
+    public void SetMuted(bool val)
+    {
+        if (val)
+        {
+            Mute();
+        }
+        else
+        {
+            Unmute();
         }
     }
 
