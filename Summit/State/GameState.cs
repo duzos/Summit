@@ -38,6 +38,7 @@ public class GameState : ISerializable<GameState>
     [JsonIgnore]
     public Random Random { get; private set; } = new();
     public int TargetScore { get; set; } = 0;
+    public float ScoreLimits { get; set; } = 0;
     public int RemainingHands { get; set; } = 0;
     public int RemainingDiscards { get; set; } = 0;
     [JsonIgnore]
@@ -167,8 +168,30 @@ public class GameState : ISerializable<GameState>
     {
         TargetScore = Random.Next(min, max);
     }
+    
+    private float NextScoreRange()
+    {
+        return ScoreLimits switch
+        {
+            0 => 500F,
+            500F => 250F,
+            250F => 100F,
+            100F => 50F,
+            50F => 25F,
+            25F => 10F,
+            10F => 5F,
+            5F => 1F,
+            1F => 0.5F,
+            _ => (float)ScoreLimits,
+        };
+    }
 
-    public void NextRound(int hands = 5, int discards = 3, int minScore = 1, int maxScore = 1001, int? targetScore = null)
+    public bool IsWin()
+    {
+        return Math.Abs(Score - TargetScore) <= ScoreLimits;
+    }
+
+    public void NextRound(int hands = 5, int discards = 3, int minScore = 1, int maxScore = 1001, int? targetScore = null, int? scoreRange = null)
     {
         if (targetScore == null) {
             RandomiseTargetScore(minScore, maxScore);
@@ -176,7 +199,15 @@ public class GameState : ISerializable<GameState>
             TargetScore = targetScore.Value;
         }
 
-        Score = 0;
+        if (scoreRange == null)
+        {
+            ScoreLimits = NextScoreRange();
+        } else
+        {
+            ScoreLimits = scoreRange.Value;
+        }
+
+            Score = 0;
         RemainingHands = hands;
         RemainingDiscards = discards;
 

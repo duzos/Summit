@@ -134,16 +134,30 @@ namespace Summit
             targetScore.Add();
             UIText targetScoreText = new(ConsoleFont)
             {
-                VerticalAlign = UIAlign.Center,
+                VerticalAlign = UIAlign.Start,
                 HorizontalAlign = UIAlign.Center,
                 TextHorizontalAlign = UIAlign.Center,
                 OnUpdate = (t, gameTime) =>
                 {
-                    ((UIText)t).Text = "Target: " + State.TargetScore;
+                    ((UIText)t).Text = "Target";
                 }
 
             };
-            targetScoreText.SetDimensions(targetScore.PreferredLayout.Size.ToVector2() - new Vector2(targetScore.Padding));
+            targetScoreText.SetDimensions((targetScore.PreferredLayout.Size.ToVector2() * new Vector2(1, 0.5F)) - new Vector2(targetScore.Padding));
+            targetScoreText.Add();
+            ((IUIElement)targetScore).AddChild(targetScoreText);
+            targetScoreText = new(ConsoleFont)
+            {
+                VerticalAlign = UIAlign.End,
+                HorizontalAlign = UIAlign.Center,
+                TextHorizontalAlign = UIAlign.Center,
+                OnUpdate = (t, gameTime) =>
+                {
+                    ((UIText)t).Text = $"{State.TargetScore - State.ScoreLimits} < X < {State.TargetScore + State.ScoreLimits}";
+                }
+
+            };
+            targetScoreText.SetDimensions((targetScore.PreferredLayout.Size.ToVector2() * new Vector2(1, 0.5F)) - new Vector2(targetScore.Padding));
             targetScoreText.Add();
             ((IUIElement)targetScore).AddChild(targetScoreText);
 
@@ -160,15 +174,28 @@ namespace Summit
             currentScore.Add();
             UIText currentScoreText = new(ConsoleFont)
             {
-                VerticalAlign = UIAlign.Center,
+                VerticalAlign = UIAlign.Start,
                 HorizontalAlign = UIAlign.Center,
                 TextHorizontalAlign = UIAlign.Center,
                 OnUpdate = (t, gameTime) =>
                 {
-                    ((UIText)t).Text = "Score: " + State.Score;
+                    ((UIText)t).Text = "Score";
                 }
             };
-            currentScoreText.SetDimensions(currentScore.PreferredLayout.Size.ToVector2() - new Vector2(currentScore.Padding));
+            currentScoreText.SetDimensions((currentScore.PreferredLayout.Size.ToVector2() * new Vector2(1, 0.5F)) - new Vector2(currentScore.Padding));
+            currentScoreText.Add();
+            ((IUIElement)currentScore).AddChild(currentScoreText);
+            currentScoreText = new(ConsoleFont)
+            {
+                VerticalAlign = UIAlign.End,
+                HorizontalAlign = UIAlign.Center,
+                TextHorizontalAlign = UIAlign.Center,
+                OnUpdate = (t, gameTime) =>
+                {
+                    ((UIText)t).Text = State.Score.ToString();
+                }
+            };
+            currentScoreText.SetDimensions((currentScore.PreferredLayout.Size.ToVector2() * new Vector2(1, 0.5F)) - new Vector2(currentScore.Padding));
             currentScoreText.Add();
             ((IUIElement)currentScore).AddChild(currentScoreText);
 
