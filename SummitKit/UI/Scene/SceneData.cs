@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using SummitKit.Physics;
 
-namespace SummitKit.UI;
+namespace SummitKit.UI.Scene;
 
 public struct SceneData
 {

@@ -364,7 +364,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
 
                 if (span <= TimeSpan.Zero) return;
 
-                MoveTo(interpolated.To, span, TimeSpan.Zero, interpolated.Callback, true, true, interpolated.Type);
+                PositionedExtensions.MoveTo(this, interpolated.To, span, TimeSpan.Zero, interpolated.Callback, true, true, interpolated.Type);
             }
         });
         ScaleTo(target, replaceExisting);

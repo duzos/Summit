@@ -63,6 +63,8 @@ public class Hand : IPositioned, IDraggable, IDraw
     [JsonIgnore]
     public float Spacing { get; set; } = 30;
     [JsonIgnore]
+    public ITarget<Vector2>? MoveTarget { get; private set; }
+    [JsonIgnore]
     public Vector2 Position
     {
         get => _centrePos;
@@ -454,6 +456,13 @@ public class Hand : IPositioned, IDraggable, IDraw
         );
 
         _pixel = UIContainer.CreateRoundedRectangle(Core.Graphics.GraphicsDevice, (int)Width, (int)Height, 8, Color.White);
+    }
+
+    public void MoveTo(ITarget<Vector2> target, bool replaceExisting = true)
+ {
+   if (MoveTarget is not null && !replaceExisting)
+     return;
+        MoveTarget = target;
     }
 
     public void Draw(SpriteBatch batch)

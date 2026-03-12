@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SummitKit.UI;
+namespace SummitKit.UI.Scene;
 
 public class Scene(List<SceneData> data, TimeSpan duration)
 {
