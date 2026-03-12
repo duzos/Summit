@@ -32,6 +32,8 @@ namespace Summit
 
         public static CardSounds CardSounds { get; } = new CardSounds();
 
+        public static Scene GameScene { get; private set; }
+
         private SpriteFont _font;
         private Effect _background;
         public MainGame() : base("Summit", 1280, 720, false)
@@ -66,8 +68,10 @@ namespace Summit
             Atlas = TextureAtlas.FromFile(Content, "assets/atlas-definition.xml");
             State = new();
 
-            CreatePlaySegment();
-            CreateStatsSegment();
+            GameScene = new Scene([CreatePlaySegment(), CreateStatsSegment()], TimeSpan.FromSeconds(1));
+            GameScene.Disable();
+
+            Scheduler.Add(_ => GameScene.Enable(), TimeSpan.FromSeconds(3));
 
             _background = Content.Load<Effect>("assets/Background");
 

@@ -21,7 +21,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
     private int _cachedWidthInt = -1;
     private int _cachedHeightInt = -1;
 
-    public ITarget<Vector2> MoveTarget { get; protected set; }
+    public ITarget<Vector2>? MoveTarget { get; protected set; }
     private ITarget<Vector2> _queued;
     public ITarget<Vector2> ScaleTarget { get; protected set; }
     public Vector2 Velocity { get; set; }
@@ -344,12 +344,6 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         }
 
         MoveTarget = target;
-    }
-
-    public void MoveTo(Vector2 to, TimeSpan duration, TimeSpan delay, Action<ITarget<Vector2>> callback = null, bool centered = true, bool replaceExisting = true, InterpolationType type = InterpolationType.Smooth)
-    {
-        var target = new InterpolatedTarget<Vector2>(to - (centered ? new Vector2(Width, Height) * 0.5F : Vector2.Zero), Position, (pos) => Position = pos, duration, delay, Vector2.Lerp, type, callback);
-        MoveTo(target, replaceExisting);
     }
 
     public void ScaleTo(ITarget<Vector2> target, bool replaceExisting = true)

@@ -176,6 +176,7 @@ public class Hand : IPositioned, IDraggable, IDraw
         {
             Scheduler.Delay(() =>
             {
+                if (step.CardIndex < 0 || step.CardIndex >= list.Count) return;
 
                 update?.Invoke(step, list.ElementAt(step.CardIndex));
             }, TimeSpan.FromSeconds(i * 1F));

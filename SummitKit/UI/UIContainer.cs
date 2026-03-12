@@ -127,6 +127,7 @@ public class UIContainer : Entity, IUIElement
 
     public override void Update(GameTime deltaTime)
     {
+        base.Update(deltaTime);
         OnUpdate?.Invoke(this, deltaTime);
     }
 
