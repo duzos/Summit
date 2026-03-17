@@ -31,6 +31,9 @@ public class EntityManager : IUpdating, IDraw
     {
         ArgumentNullException.ThrowIfNull(entity);
 
+        if (_entities.Contains(entity))
+            throw new InvalidOperationException("Entity is already in the manager.");
+
         _entities.Add(entity);
     }
     public void RemoveEntity(Entity entity)

@@ -24,6 +24,7 @@ public class UIContainer : Entity, IUIElement
         Scale = Vector2.One;
 
         HasCollisions = false;
+        CollidesWithWindowEdges = false;
         HasGravity = false;
         Draggable = false;
         Clickable = false;

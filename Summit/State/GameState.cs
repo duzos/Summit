@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 namespace Summit.State;
 
 // todo seperate into multiple sub classes
-public class GameState : ISerializable<GameState>
+public class GameState : ISerializable<GameState>, IUpdating
 {
     [JsonInclude]
     public Deck MainDeck { get; private set; } = new();
@@ -299,5 +299,11 @@ public class GameState : ISerializable<GameState>
         {
             Core.Console.Context.Error("Failed to save game state" + e.Message);
         }
+    }
+
+    public void Update(GameTime deltaTime)
+    {
+        PlayedHand.Update(deltaTime);
+        MainHand.Update(deltaTime);
     }
 }

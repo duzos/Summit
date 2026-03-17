@@ -6,6 +6,8 @@ using SummitKit.Command;
 using SummitKit.Input;
 using SummitKit.Physics;
 using SummitKit.UI;
+using SummitKit.UI.Scene;
+using SummitKit.UI.Scenes;
 using SummitKit.Util;
 using System;
 
@@ -52,6 +54,7 @@ public class Core : Game
     public static CoreConsole Console { get; } = new CoreConsole();
 
     public static AudioManager Audio { get; } = new AudioManager();
+    public static SceneManager SceneManager { get; } = new SceneManager();
 
     /// <summary>
     /// Gets or Sets a value that indicates if the game should exit when the esc key on the keyboard is pressed.
@@ -137,6 +140,7 @@ public class Core : Game
 
         Console.Commands.Register(new HelpCommand(Console.Commands));
         Console.Commands.Register(new DebugUICommand());
+        Console.Commands.Register(new CommandScene());
         Console.Commands.RegisterNamespace("SummitKit.Audio", assembly: typeof(FadeSongCommand).Assembly);
         base.Initialize();
     }

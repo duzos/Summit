@@ -4,8 +4,6 @@ using SummitKit.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SummitKit.UI.Scene;
 
@@ -13,31 +11,32 @@ public class Scene(List<SceneData> data, TimeSpan duration)
 {
     private readonly List<SceneData> _data = data;
 
-    public IReadOnlyList<Entity> Children => [.. _data.Select(d => d.Entity)];
+    public IReadOnlyList<IPositioned> Children => [.. _data.Select(d => d.Positioned)];
     public IReadOnlyList<SceneData> Data => _data;
 
     public TimeSpan Duration { get; protected set; } = duration;
 
-    public Scene(List<Entity> data, TimeSpan duration) : this([.. data.Select(e => new SceneData { Entity = e, Position = e.Position })], duration) { }
+    public Scene(List<IPositioned> data, TimeSpan duration) : this([.. data.Select(e => new SceneData { Positioned = e, Position = e.Position })], duration) { }
 
     public virtual void Enable()
     {
-        _data.ForEach(d => d.Entity.MoveTo(d.Position, Duration, TimeSpan.Zero, centered: false));
-    }   
+        _data.ForEach(d => d.Positioned.MoveTo(d.Position, Duration, TimeSpan.Zero, centered: false));
+    }
 
     public virtual void Disable()
     {
-        // Move each entity towards the nearest edge of the screen, then remove it from the scene.
+        // Move each positioned item towards the nearest edge of the screen
         _data.ForEach(d =>
         {
-            var nearestEdge = NearestScreenEdge(d.Position, Size: new Vector2(d.Entity.Width, d.Entity.Height));
-            d.Entity.MoveTo(nearestEdge, Duration, TimeSpan.Zero, centered: false);
+            var nearestEdge = NearestScreenEdge(d.Position, Size: new Vector2(d.Positioned.Width, d.Positioned.Height));
+            d.Positioned.MoveTo(nearestEdge, Duration, TimeSpan.Zero, centered: false);
         });
     }
 
-    public void Transition(Scene other)
+    public void Transition(Scene? other)
     {
         Disable();
+        if (other is null) return;
         Scheduler.Delay(other.Enable, Duration);
     }
 

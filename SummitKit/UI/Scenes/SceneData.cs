@@ -6,5 +6,5 @@ namespace SummitKit.UI.Scene;
 public struct SceneData
 {
     public Vector2 Position;
-    public Entity Entity;
+    public IPositioned Positioned;
 }

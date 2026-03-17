@@ -18,7 +18,8 @@ using System.Threading.Tasks;
 
 namespace Summit.Card;
 
-public class Hand : IPositioned, IDraggable, IDraw
+// TODO - atp this could just be an Entity as well. Implements all the same stuff.
+public class Hand : IPositioned, IDraggable, IDraw, IUpdating
 {
     public static readonly Comparison<CardData> SortByValue = (a, b) =>
     {
@@ -303,7 +304,7 @@ public class Hand : IPositioned, IDraggable, IDraw
             return;
 
         CardEntity? nearest = Core.Entities.GetNearestEntity(Core.Input.Mouse.Position.ToVector2(), float.MaxValue, val => val != entity && val is CardEntity valCard && _entities.ContainsValue(valCard)) as CardEntity;
-       
+
         int curIndex = _cards.IndexOf(entity.Data);
         int targetIndex = nearest != null ? _cards.IndexOf(nearest.Data) : curIndex;
 
@@ -459,9 +460,9 @@ public class Hand : IPositioned, IDraggable, IDraw
     }
 
     public void MoveTo(ITarget<Vector2> target, bool replaceExisting = true)
- {
-   if (MoveTarget is not null && !replaceExisting)
-     return;
+    {
+        if (MoveTarget is not null && !replaceExisting)
+            return;
         MoveTarget = target;
     }
 
@@ -479,5 +480,25 @@ public class Hand : IPositioned, IDraggable, IDraw
         }
         // draw a grey translucent rectangle behind the hand
         batch.Draw(_pixel, AABB, null, Color.Black * 0.5F, 0F, Vector2.Zero, SpriteEffects.None, LayerDepth);
+    }
+
+    public void Update(GameTime deltaTime)
+    {
+        if (MoveTarget is not null)
+        {
+            MoveTarget.Update(deltaTime);
+
+            const float snapDistance = 1f;
+            Vector2 to = MoveTarget.To;
+            if (Vector2.Distance(Position, to) < snapDistance)
+            {
+                Position = to;
+            }
+
+            if (MoveTarget.IsComplete)
+            {
+                MoveTarget = null;
+            }
+        }
     }
 }
