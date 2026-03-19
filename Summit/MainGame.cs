@@ -41,6 +41,11 @@ namespace Summit
 
         }
 
+        internal static void ResetState()
+        {
+            State = new();
+        }
+
         protected override void Initialize()
         {
             base.Initialize();

@@ -20,6 +20,16 @@ public class SceneManager
         get => _current;
         set {
             _current?.Transition(value);
+
+            if (_current == null) value?.Enable();
+
+            foreach (var item in _scenes.Values)
+            {
+                if (item == _current || item == value) continue;
+
+                item.Disable();
+             }
+
             _current = value;
         }
     }
@@ -47,5 +57,18 @@ public class SceneManager
     public void Register(string key, Scene scene)
     {
         _scenes[key] = scene;
+    }
+
+    public void TryGetKey(Scene? val, out string? key)
+    {
+        foreach (var pair in _scenes)
+        {
+            if (pair.Value == val)
+            {
+                key = pair.Key;
+                return;
+            }
+        }
+        key = null;
     }
 }

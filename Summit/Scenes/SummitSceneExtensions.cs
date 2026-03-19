@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Summit.Card;
+using SummitKit;
 using SummitKit.Physics;
 using SummitKit.UI;
 using SummitKit.UI.Scene;
@@ -37,14 +38,12 @@ public static class SummitSceneExtensions
 
     public static void Initialize()
     {
-        SummitKit.Core.SceneManager.Register(SummitScene.MainMenu.ToString(), CreateMainMenuScene());
-        SummitKit.Core.SceneManager.Register(SummitScene.Gameplay.ToString(), CreateGameplayScene());
+        var manager = SummitKit.Core.SceneManager;
+        manager.Register(SummitScene.MainMenu.ToString(), CreateMainMenuScene());
+        manager.Register(SummitScene.Gameplay.ToString(), CreateGameplayScene());
+        manager.Register(SummitScene.GameOver.ToString(), CreateGameOverScene());
 
-        // Disable gameplay scene initially (move elements off-screen)
-        SummitScene.Gameplay.ToScene()?.Disable();
-
-        // Start with MainMenu enabled
-        SummitScene.MainMenu.ToScene()?.Enable();
+        manager.Current = SummitScene.MainMenu.ToScene();
     }
 
     private static Scene CreateMainMenuScene()
@@ -91,9 +90,7 @@ public static class SummitSceneExtensions
         var playButton = new UIButton(_ =>
              {
                  // Transition to gameplay
-                 var mainMenu = SummitScene.MainMenu.ToScene();
-                 var gameplay = SummitScene.Gameplay.ToScene();
-                 mainMenu?.Transition(gameplay);
+                 Core.SceneManager.Current = SummitScene.Gameplay.ToScene();
 
                  // Start the game after transition
                  Scheduler.Delay(() =>
@@ -129,6 +126,21 @@ public static class SummitSceneExtensions
         // Use the actual Hand from GameState
         List<IPositioned> elements = [statsSegment, playSegment, MainGame.State.MainHand];
         return new Scene(elements, TransitionDuration);
+    }
+
+    public static SummitScene? GetSummitScene()
+    {
+        if (MainGame.SceneManager.Current == null) return null;
+        MainGame.SceneManager.TryGetKey(MainGame.SceneManager.Current, out var currentName);
+        if (currentName == null) throw new InvalidOperationException("Current scene is not registered in the scene manager.");
+
+        return Enum.TryParse(currentName, out SummitScene scene) ? scene : null;
+    }
+
+    public static bool IsCurrentScene(SummitScene scene)
+    {
+        var currentScene = GetSummitScene();
+        return currentScene.HasValue && currentScene.Value == scene;
     }
 
     /// <summary>
@@ -340,6 +352,123 @@ public static class SummitSceneExtensions
         text.Add();
         button.Add();
         ((IUIElement)container).AddChild(button);
+
+        ((IUIElement)container).RecalculateLayout();
+
+        return container;
+    }
+
+    public static void TriggerGameOver()
+    {
+        if (!IsCurrentScene(SummitScene.Gameplay)) return;
+
+        var gameOver = SummitScene.GameOver.ToScene();
+        MainGame.SceneManager.Current = gameOver;
+    }
+
+    private static Scene CreateGameOverScene()
+    {
+        var container = CreateGameOverSegment();
+        return new Scene([container], TransitionDuration);
+    }
+
+    private static UIContainer CreateGameOverSegment()
+    {
+        var screenWidth = SummitKit.Core.GraphicsDevice.PresentationParameters.BackBufferWidth;
+        var screenHeight = SummitKit.Core.GraphicsDevice.PresentationParameters.BackBufferHeight;
+
+        UIContainer container = new()
+        {
+            BackgroundColour = Color.Transparent,
+            VerticalAlign = UIAlign.Center,
+            HorizontalAlign = UIAlign.Center,
+        };
+        container.Shadow.Enabled = false;
+        container.SetDimensions(600, 360);
+        container.Position = new(screenWidth / 2 - container.Width / 2, screenHeight / 2 - container.Height / 2);
+        container.Add();
+
+        var titleText = new UIText(SummitKit.Core.ConsoleFont, "Game Over")
+        {
+            VerticalAlign = UIAlign.Start,
+            HorizontalAlign = UIAlign.Center,
+            TextHorizontalAlign = UIAlign.Center
+        };
+        titleText.SetDimensions(400, 80);
+        ((IUIElement)container).AddChild(titleText);
+        titleText.Add();
+
+        var scoreText = new UIText(SummitKit.Core.ConsoleFont)
+        {
+            VerticalAlign = UIAlign.Start,
+            HorizontalAlign = UIAlign.Center,
+            TextHorizontalAlign = UIAlign.Center,
+            OnUpdate = (t, _) => ((UIText)t).Text = $"Final Score: {MainGame.State.Score}"
+        };
+        scoreText.SetDimensions(400, 60);
+        ((IUIElement)container).AddChild(scoreText);
+        scoreText.Add();
+
+        var mainMenuText = new UIText(SummitKit.Core.ConsoleFont, "Main Menu")
+        {
+            VerticalAlign = UIAlign.Center,
+            HorizontalAlign = UIAlign.Center,
+            TextHorizontalAlign = UIAlign.Center
+        };
+        var mainMenuButton = new UIButton(_ =>
+        {
+            Core.SceneManager.Current = SummitScene.MainMenu.ToScene();
+
+            Scheduler.Delay(() =>
+            {
+                State.GameState.Reset();
+            }, TransitionDuration);
+        })
+        {
+            Radius = 12,
+            VerticalAlign = UIAlign.Center,
+            HorizontalAlign = UIAlign.Center,
+        };
+        mainMenuButton.SetDimensions(200, 60);
+        mainMenuText.SetDimensions(mainMenuButton.PreferredLayout.Size.ToVector2() - new Vector2(mainMenuButton.Padding));
+        mainMenuButton.Shadow.Enabled = true;
+        mainMenuButton.BaseColour = Color.Gray;
+        mainMenuButton.HoverColour = Color.DarkGray;
+        ((IUIElement)mainMenuButton).AddChild(mainMenuText);
+        ((IUIElement)container).AddChild(mainMenuButton);
+        mainMenuText.Add();
+        mainMenuButton.Add();
+
+        var restartText = new UIText(SummitKit.Core.ConsoleFont, "Restart")
+        {
+            VerticalAlign = UIAlign.Center,
+            HorizontalAlign = UIAlign.Center,
+            TextHorizontalAlign = UIAlign.Center
+        };
+        var restartButton = new UIButton(_ =>
+        {
+            Core.SceneManager.Current = SummitScene.Gameplay.ToScene();
+
+            Scheduler.Delay(() =>
+            {
+                State.GameState.Reset();
+                MainGame.State.NextRound();
+            }, TransitionDuration);
+        })
+        {
+            Radius = 12,
+            VerticalAlign = UIAlign.Center,
+            HorizontalAlign = UIAlign.Center,
+        };
+        restartButton.SetDimensions(200, 60);
+        restartText.SetDimensions(restartButton.PreferredLayout.Size.ToVector2() - new Vector2(restartButton.Padding));
+        restartButton.Shadow.Enabled = true;
+        restartButton.BaseColour = Color.Green;
+        restartButton.HoverColour = Color.DarkGreen;
+        ((IUIElement)restartButton).AddChild(restartText);
+        ((IUIElement)container).AddChild(restartButton);
+        restartText.Add();
+        restartButton.Add();
 
         ((IUIElement)container).RecalculateLayout();
 

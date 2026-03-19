@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Summit.Card;
 using Summit.Json;
 using Summit.Maths;
+using Summit.Scenes;
 using SummitKit;
 using SummitKit.Audio;
 using SummitKit.IO;
@@ -131,7 +132,7 @@ public class GameState : ISerializable<GameState>, IUpdating
 
         if (val)
         {
-            Scheduler.Delay(() => NextRound(), TimeSpan.FromSeconds(1));
+            Scheduler.Delay(SummitSceneExtensions.TriggerGameOver, TimeSpan.FromSeconds(1));
         }
 
         return val;
@@ -305,5 +306,10 @@ public class GameState : ISerializable<GameState>, IUpdating
     {
         PlayedHand.Update(deltaTime);
         MainHand.Update(deltaTime);
+    }
+
+    public static void Reset()
+    {
+        MainGame.ResetState();
     }
 }
