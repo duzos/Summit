@@ -77,15 +77,15 @@ public static class TokenExpression {
             {
                 Op op = entry.Card.Suit.ToOperation();
                 double before = total;
-                total = Apply(total, entry.Card.Rank, op);
+                total = Apply(total, entry.Card.ClampedRank, op);
                 if (total == 0 && (op == Op.Multiply || op == Op.Divide))
                 {
-                    total = Apply(total, entry.Card.Rank, Op.Add);
+                    total = Apply(total, entry.Card.ClampedRank, op == Op.Multiply ? Op.Add : Op.Subtract);
                 }
                 steps.Add(new ApplyStep(
                     entry.Index,
                     entry.Card.Suit.ToOperation(),
-                    entry.Card.Rank,
+                    entry.Card.ClampedRank,
                     before,
                     total
                 ));
@@ -111,7 +111,7 @@ public static class TokenExpression {
             Op.Subtract => a - b,
             Op.Multiply => a * b,
             Op.Divide => b == 0 ? 0 : a / b,
-            _ => throw new ArgumentOutOfRangeException()
+            _ => throw new ArgumentOutOfRangeException(nameof(op))
         };
     }
 }

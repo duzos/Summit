@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Summit.Card;
+using Summit.Maths;
 using SummitKit;
 using SummitKit.Physics;
 using SummitKit.UI;
@@ -62,9 +63,11 @@ public static class SummitSceneExtensions
             BackgroundColour = Color.Transparent,
             VerticalAlign = UIAlign.Center,
             HorizontalAlign = UIAlign.Center,
+            Spacing = 15,
+            Padding = 15
         };
         container.Shadow.Enabled = false;
-        container.SetDimensions(400, 300);
+        container.SetDimensions(400, 275);
         container.Position = new(screenWidth / 2 - container.Width / 2, screenHeight / 2 - container.Height / 2);
         container.Add();
 
@@ -73,7 +76,8 @@ public static class SummitSceneExtensions
         {
             VerticalAlign = UIAlign.Start,
             HorizontalAlign = UIAlign.Center,
-            TextHorizontalAlign = UIAlign.Center
+            TextHorizontalAlign = UIAlign.Center,
+            Spacing = 15
         };
         titleText.SetDimensions(400, 80);
         ((IUIElement)container).AddChild(titleText);
@@ -88,26 +92,54 @@ public static class SummitSceneExtensions
         };
 
         var playButton = new UIButton(_ =>
-             {
-                 // Transition to gameplay
-                 Core.SceneManager.Current = SummitScene.Gameplay.ToScene();
+        {
+            // Transition to gameplay
+            Core.SceneManager.Current = SummitScene.Gameplay.ToScene();
 
-                 // Start the game after transition
-                 Scheduler.Delay(() =>
-                {
-                     MainGame.State.NextRound();
-                 }, TransitionDuration);
-             })
+            // Start the game after transition
+            Scheduler.Delay(() =>
+            {
+                MainGame.State.OnLoad();
+            }, TransitionDuration);
+        })
         {
             Radius = 12,
             VerticalAlign = UIAlign.Center,
             HorizontalAlign = UIAlign.Center,
+            Spacing = 15
         };
         playButton.SetDimensions(200, 60);
         playText.SetDimensions(playButton.PreferredLayout.Size.ToVector2() - new Vector2(playButton.Padding));
         playButton.Shadow.Enabled = true;
         playButton.BaseColour = Color.Green;
         playButton.HoverColour = Color.DarkGreen;
+        ((IUIElement)playButton).AddChild(playText);
+        ((IUIElement)container).AddChild(playButton);
+        playText.Add();
+        playButton.Add();
+
+        playText = new UIText(SummitKit.Core.ConsoleFont, "Quit")
+        {
+            VerticalAlign = UIAlign.Center,
+            HorizontalAlign = UIAlign.Center,
+            TextHorizontalAlign = UIAlign.Center
+        };
+
+        playButton = new UIButton(_ =>
+        {
+            Core.Instance.Exit();
+        })
+        {
+            Radius = 12,
+            VerticalAlign = UIAlign.End,
+            HorizontalAlign = UIAlign.Center,
+            Spacing = 15
+        };
+        playButton.SetDimensions(200, 60);
+        playText.SetDimensions(playButton.PreferredLayout.Size.ToVector2() - new Vector2(playButton.Padding));
+        playButton.Shadow.Enabled = true;
+        playButton.BaseColour = Color.Red;
+        playButton.HoverColour = Color.DarkRed;
         ((IUIElement)playButton).AddChild(playText);
         ((IUIElement)container).AddChild(playButton);
         playText.Add();
@@ -137,7 +169,7 @@ public static class SummitSceneExtensions
         return Enum.TryParse(currentName, out SummitScene scene) ? scene : null;
     }
 
-    public static bool IsCurrentScene(SummitScene scene)
+    public static bool IsCurrentScene(this SummitScene scene)
     {
         var currentScene = GetSummitScene();
         return currentScene.HasValue && currentScene.Value == scene;
@@ -151,7 +183,9 @@ public static class SummitSceneExtensions
         UIContainer container = new()
         {
             BackgroundColour = Color.DarkGray,
-            Radius = 1
+            Radius = 1,
+            Spacing = 15,
+            Padding = 15
         };
         container.Shadow.Enabled = false;
         container.CollidesWithWindowEdges = false;
@@ -198,9 +232,10 @@ public static class SummitSceneExtensions
             VerticalAlign = UIAlign.End,
             HorizontalAlign = UIAlign.Center,
             TextHorizontalAlign = UIAlign.Center,
+            TextVerticalAlign = UIAlign.Center,
             OnUpdate = (t, _) => ((UIText)t).Text = $"{MainGame.State.TargetScore - MainGame.State.ScoreLimits} < X < {MainGame.State.TargetScore + MainGame.State.ScoreLimits}"
         };
-        targetScoreText.SetDimensions(targetScore.PreferredLayout.Size.ToVector2() * new Vector2(1, 0.5F) - new Vector2(targetScore.Padding));
+        targetScoreText.SetDimensions(targetScore.PreferredLayout.Size.ToVector2() * new Vector2(1, 0.45F) - new Vector2(targetScore.Padding));
         targetScoreText.Add();
         ((IUIElement)targetScore).AddChild(targetScoreText);
 
@@ -231,11 +266,33 @@ public static class SummitSceneExtensions
             VerticalAlign = UIAlign.End,
             HorizontalAlign = UIAlign.Center,
             TextHorizontalAlign = UIAlign.Center,
-            OnUpdate = (t, _) => ((UIText)t).Text = MainGame.State.Score.ToString()
+            OnUpdate = (t, _) => ((UIText)t).Text = MainGame.State.Score.ToString(2)
         };
-        currentScoreText.SetDimensions(currentScore.PreferredLayout.Size.ToVector2() * new Vector2(1, 0.5F) - new Vector2(currentScore.Padding));
+        currentScoreText.SetDimensions(currentScore.PreferredLayout.Size.ToVector2() * new Vector2(1, 0.45F) - new Vector2(currentScore.Padding));
         currentScoreText.Add();
         ((IUIElement)currentScore).AddChild(currentScoreText);
+
+        UIContainer roundsPlayed = new()
+        {
+            VerticalAlign = UIAlign.Center,
+            HorizontalAlign = UIAlign.Center,
+            BackgroundColour = Color.Red
+        };
+        roundsPlayed.SetDimensions((scores.PreferredLayout.Size.ToVector2() - new Vector2(scores.Padding)) / new Vector2(1.1F, 2.1F));
+        ((IUIElement)scores).AddChild(roundsPlayed);
+        roundsPlayed.Add();
+
+        UIText roundsPlayedText = new(SummitKit.Core.ConsoleFont)
+        {
+            VerticalAlign = UIAlign.Center,
+            HorizontalAlign = UIAlign.Center,
+            TextHorizontalAlign = UIAlign.Center,
+            TextVerticalAlign = UIAlign.Center,
+            OnUpdate = (t, _) => ((UIText)t).Text = $"Round #{MainGame.State.RoundsPlayed}"
+        };
+        roundsPlayedText.SetDimensions(roundsPlayed.PreferredLayout.Size.ToVector2() - new Vector2(roundsPlayed.Padding));
+        roundsPlayedText.Add();
+        ((IUIElement)roundsPlayed).AddChild(roundsPlayedText);;
 
         return container;
     }
@@ -358,14 +415,6 @@ public static class SummitSceneExtensions
         return container;
     }
 
-    public static void TriggerGameOver()
-    {
-        if (!IsCurrentScene(SummitScene.Gameplay)) return;
-
-        var gameOver = SummitScene.GameOver.ToScene();
-        MainGame.SceneManager.Current = gameOver;
-    }
-
     private static Scene CreateGameOverScene()
     {
         var container = CreateGameOverSegment();
@@ -403,7 +452,7 @@ public static class SummitSceneExtensions
             VerticalAlign = UIAlign.Start,
             HorizontalAlign = UIAlign.Center,
             TextHorizontalAlign = UIAlign.Center,
-            OnUpdate = (t, _) => ((UIText)t).Text = $"Final Score: {MainGame.State.Score}"
+            OnUpdate = (t, _) => ((UIText)t).Text = $"Lost on Round #{MainGame.State.RoundsPlayed}"
         };
         scoreText.SetDimensions(400, 60);
         ((IUIElement)container).AddChild(scoreText);
@@ -452,7 +501,7 @@ public static class SummitSceneExtensions
             Scheduler.Delay(() =>
             {
                 State.GameState.Reset();
-                MainGame.State.NextRound();
+                MainGame.State.OnLoad();
             }, TransitionDuration);
         })
         {

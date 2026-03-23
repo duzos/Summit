@@ -41,6 +41,7 @@ public class EntityManager : IUpdating, IDraw
         ArgumentNullException.ThrowIfNull(entity);
 
         _entities.Remove(entity);
+        entity.OnRemove();
     }
     public void ClearEntities()
     {

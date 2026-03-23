@@ -12,6 +12,7 @@ using SummitKit.Util;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
@@ -41,6 +42,8 @@ public class GameState : ISerializable<GameState>, IUpdating
     public int TargetScore { get; set; } = 0;
     public float ScoreLimits { get; set; } = 0;
     public int RemainingHands { get; set; } = 0;
+
+    public int RoundsPlayed { get; set; } = 0;
     public int RemainingDiscards { get; set; } = 0;
     [JsonIgnore]
     public Comparison<CardData> LastSort { get; set; } = Hand.SortByValue;
@@ -63,6 +66,10 @@ public class GameState : ISerializable<GameState>, IUpdating
 
     [JsonIgnore]
     public TokenExpression.ResolveProfile ResolveProfile { get; set; } = TokenExpression.ResolveProfiles.LeftToRight;
+
+    [JsonIgnore]
+    private bool TransitionTaskEnqueued = false;
+
     public GameState()
     {
         MainDeck.Shuffle();
@@ -116,7 +123,7 @@ public class GameState : ISerializable<GameState>, IUpdating
                 card.Trigger(index);
                 PlayedScore = (float) step.After;
 
-                card.DisplayMessage(PlayedScore.ToString());
+                card.DisplayMessage(PlayedScore!.ToString(2));
 
                 index++;
             });
@@ -128,15 +135,36 @@ public class GameState : ISerializable<GameState>, IUpdating
 
     private bool CheckGameEnd()
     {
-        bool val = RemainingHands <= 0 || (MainDeck.Count == 0 && MainHand.Cards.Count == 0);
+        if (!IsGameplayScene()) return false;
 
-        if (val)
+        bool roundFinished = IsRoundOver();
+        bool metScore = IsWin();
+
+        if (!roundFinished) return false;
+
+        if (!TransitionTaskEnqueued)
         {
-            Scheduler.Delay(SummitSceneExtensions.TriggerGameOver, TimeSpan.FromSeconds(1));
-        }
+            Action task = metScore ? () => NextRound() : TriggerGameOver;
 
-        return val;
+            task += () => TransitionTaskEnqueued = false;
+            TransitionTaskEnqueued = true;
+
+            Scheduler.Delay(task, TimeSpan.FromSeconds(1));
+        }
+        return true;
     }
+    private static void TriggerGameOver()
+    {
+
+        var gameOver = SummitScene.GameOver.ToScene();
+        MainGame.SceneManager.Current = gameOver;
+    }
+
+    private bool IsRoundOver()
+    {
+        return (RemainingHands <= 0 || MainHand.Cards.Count == 0);
+    }
+
     public bool DiscardSelected(bool force = false)
     {
         if ((RemainingDiscards <= 0 || MainHand.Selected.Count == 0) && !force) return false;
@@ -172,19 +200,11 @@ public class GameState : ISerializable<GameState>, IUpdating
     
     private float NextScoreRange()
     {
-        return ScoreLimits switch
-        {
-            0 => 500F,
-            500F => 250F,
-            250F => 100F,
-            100F => 50F,
-            50F => 25F,
-            25F => 10F,
-            10F => 5F,
-            5F => 1F,
-            1F => 0.5F,
-            _ => (float)ScoreLimits,
-        };
+        const float start = 500F;
+        const float decay = 0.5F; // halves each round
+
+        float val = start * MathF.Pow(decay, RoundsPlayed);
+        return MathF.Max(val, 0.5F); 
     }
 
     public bool IsWin()
@@ -192,8 +212,15 @@ public class GameState : ISerializable<GameState>, IUpdating
         return Math.Abs(Score - TargetScore) <= ScoreLimits;
     }
 
+    public static bool IsGameplayScene()
+    {
+        return SummitScene.Gameplay.IsCurrentScene();
+    }
+
     public void NextRound(int hands = 5, int discards = 3, int minScore = 1, int maxScore = 1001, int? targetScore = null, int? scoreRange = null)
     {
+        if (!IsGameplayScene()) return;
+
         if (targetScore == null) {
             RandomiseTargetScore(minScore, maxScore);
         } else {
@@ -208,9 +235,10 @@ public class GameState : ISerializable<GameState>, IUpdating
             ScoreLimits = scoreRange.Value;
         }
 
-            Score = 0;
+        Score = 0;
         RemainingHands = hands;
         RemainingDiscards = discards;
+        RoundsPlayed++;
 
         MainDeck.AddAll(MainHand.Cards);
         MainHand.DiscardAll();
@@ -235,10 +263,7 @@ public class GameState : ISerializable<GameState>, IUpdating
             .ToList()
             .ForEach(Core.Entities.RemoveEntity);
 
-        SpawnDeckTop();
-
-        PlayedHand.Draggable = false;
-        PlayedHand.Backdrop = false;
+        GameState.SpawnDeckTop();
 
         PlayedHand.Position = new(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height / 2 - 100);
         MainHand.Position = new Vector2(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height - 200);
@@ -247,7 +272,9 @@ public class GameState : ISerializable<GameState>, IUpdating
         MusicTracker musicTracker = Core.Audio.Music;
         musicTracker.FadeInto(musicTracker.RandomSong!, TimeSpan.FromSeconds(2.5), TimeSpan.FromSeconds(2.5));
 
-        if (CheckGameEnd()) return;
+        if (CheckGameEnd() || !IsGameplayScene()) return;
+
+        if (RoundsPlayed == 0) NextRound();
 
         Deal();
         PlayedHand.SpawnCards();
@@ -263,7 +290,7 @@ public class GameState : ISerializable<GameState>, IUpdating
         }, TimeSpan.FromSeconds(2));
     }
 
-    private CardEntity SpawnDeckTop()
+    private static CardEntity SpawnDeckTop()
     {
         CardEntity entity = new(new(CardType.Ace, CardSuit.Spades))
         {
@@ -273,7 +300,7 @@ public class GameState : ISerializable<GameState>, IUpdating
         };
         entity.Sprite?.CenterOrigin();
         entity.HasCollisions = false;
-        entity.Sprite.LayerDepth = 0.1F;
+        entity.Sprite!.LayerDepth = 0.1F;
         entity.CollidesWithWindowEdges = false;
         entity.Position = new Vector2(Core.GraphicsDevice.PresentationParameters.BackBufferWidth - 110, Core.GraphicsDevice.PresentationParameters.BackBufferHeight -160);
         var pos = entity.Position;

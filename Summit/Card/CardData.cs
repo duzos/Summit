@@ -58,6 +58,8 @@ public class CardData
         }
     }
 
+    public int ClampedRank => Math.Min(Rank, 10);
+
     [JsonIgnore]
     public bool IsFaceCard => Rank > 10;
     [JsonIgnore]

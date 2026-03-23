@@ -58,7 +58,7 @@ public class UIText : UIContainer
                 scale += .1F;
             }
 
-            scale -= .2F;
+            scale -= .5F;
             textSize *= scale;
 
             var textPosition = Position;
@@ -75,7 +75,7 @@ public class UIText : UIContainer
 
             switch (TextVerticalAlign) {                 
                 case UIAlign.Center:
-                    textPosition.Y += (Height / 2) - (textSize.Y / 2);
+                    textPosition.Y += (Height / 2) - (textSize.Y / 2F);
                     break;
                 case UIAlign.End:
                     textPosition.Y += Height;

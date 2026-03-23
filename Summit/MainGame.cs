@@ -43,7 +43,18 @@ namespace Summit
 
         internal static void ResetState()
         {
-            State = new();
+            try
+            {
+                State.MainHand.Clear();
+                State.PlayedHand.Clear();
+                ((ISerializable<GameState>)State).Delete();
+                State = new();
+                State.OnLoad();
+            }
+            catch (Exception e)
+            {
+                Console.Context.Error("Failed to reset game state: " + e.Message);
+            }
         }
 
         protected override void Initialize()

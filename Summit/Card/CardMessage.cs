@@ -116,7 +116,6 @@ public class CardMessage : Entity
 
                 scale -= .2F;
                 textSize *= scale;
-                textPos -= (textSize / 2);
 
                 Color textColor = TextColour * alpha;
 
@@ -129,15 +128,14 @@ public class CardMessage : Entity
                         for (float oy = -TextOutlineThickness; oy <= TextOutlineThickness; oy += TextOutlineThickness)
                         {
                             if (ox != 0 || oy != 0)
-                                batch.DrawString(Font, Message, textPos + new Vector2(ox, oy), outlineColor, 0, new Vector2(0.5f, 0.5f), 1, SpriteEffects.None, 0.1f);
+                                batch.DrawString(Font, Message, textPos + new Vector2(ox, oy), outlineColor, 0, Font.MeasureString(line) / 2F, 1, SpriteEffects.None, 0.1f);
                         }
                     }
                 }
 
-                batch.DrawString(Font, Message, textPos, textColor, 0, new Vector2(0.5f, 0.5f), 1, SpriteEffects.None, 0.2F);
+                batch.DrawString(Font, Message, textPos, textColor, 0, Font.MeasureString(line) / 2F, 1, SpriteEffects.None, 0.2F);
 
-                textPos += textSize / 2;
-                textPos += new Vector2(0, textSize.Y);
+                textPos.Y += Font.MeasureString(line).Y * scale;
             }
         }
     }

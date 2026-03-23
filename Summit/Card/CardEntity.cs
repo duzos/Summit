@@ -16,9 +16,9 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
 {
     private float? _desiredRotation;
     public CardData Data { get; init; } = data;
-    public Hand ParentHand { get; set; }
+    public Hand? ParentHand { get; set; }
 
-    public bool IsSelected => ParentHand.Selected.Contains(this);
+    public bool IsSelected => ParentHand!.Selected.Contains(this);
     public void SetSelected(bool val)
     {
         if (ParentHand is null || !Draggable || !ParentHand.Draggable) return;
@@ -186,5 +186,10 @@ public class CardEntity(CardData data) : Entity(data.CreateSprite(MainGame.Atlas
         msg.Add();
 
         return msg;
+    }
+
+    public override void OnRemove()
+    {
+        ParentHand?.RemoveCard(this);
     }
 }

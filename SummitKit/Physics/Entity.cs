@@ -401,6 +401,11 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         Core.Entities.RemoveEntity(this);
     }
 
+    public virtual void OnRemove()
+    {
+        // Override in derived classes to handle cleanup when the entity is removed.
+    }
+
     public void Add()
     {
         Core.Entities.AddEntity(this);

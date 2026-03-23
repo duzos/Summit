@@ -128,9 +128,11 @@ public class Hand : IPositioned, IDraggable, IDraw, IUpdating
     }
     public void RemoveCard(CardData card)
     {
-        if (_entities[card] is not null)
+        if (card is null) return;
+
+        if (_entities.TryGetValue(card, out var entity) && entity is not null)
         {
-            _selected.Remove(_entities[card]);
+            _selected.Remove(entity);
         }
 
         _cards.Remove(card);
@@ -171,7 +173,8 @@ public class Hand : IPositioned, IDraggable, IDraw, IUpdating
 
     public void Trigger(TokenExpression.ResolveProfile profile, Action<float>? finished = null, Action<TokenExpression.ApplyStep, CardEntity>? update = null, bool selectedOnly = false)
     {
-        List<CardEntity> list = (selectedOnly ? [.. Selected] : _entities.Values.ToList());
+        // order by left->right position
+        List<CardEntity> list = (selectedOnly ? [.. Selected] : _entities.Values.OrderBy(c => c.Position.X).ToList());
         List<TokenExpression.ApplyStep> steps = TokenExpression.BuildApplySteps(this, profile, selected: selectedOnly);
 
         int i = 0;

@@ -55,5 +55,11 @@ public interface ISerializable<T> where T : class, ISerializable<T>
         File.WriteAllText(FilePath, json);
     }
 
+    void Delete()
+    {
+        if (File.Exists(FilePath))
+            File.Delete(FilePath);
+    }
+
     void OnLoad();
 }
