@@ -274,7 +274,7 @@ public static class SummitSceneExtensions
 
         UIContainer roundsPlayed = new()
         {
-            VerticalAlign = UIAlign.Center,
+            VerticalAlign = UIAlign.End,
             HorizontalAlign = UIAlign.Center,
             BackgroundColour = Color.Red
         };

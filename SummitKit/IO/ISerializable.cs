@@ -13,7 +13,7 @@ namespace SummitKit.IO;
 public interface ISerializable<T> where T : class, ISerializable<T>
 {
     [JsonIgnore]
-    public JsonSerializerOptions JsonOptions => new JsonSerializerOptions
+    public JsonSerializerOptions JsonOptions => new()
     {
         WriteIndented = true
     };
