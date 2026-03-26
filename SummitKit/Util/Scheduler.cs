@@ -52,6 +52,16 @@ public class Scheduler : IUpdating
         Core.Scheduler.Add(action, delay, repeatDelay);
     }
 
+    public void ClearAll()
+    {
+        tasks.ForEach(t => t.Cancelled = true);
+    }
+
+    public static void Clear()
+    {
+        Core.Scheduler.ClearAll();
+    }
+
     public class Task(Action<Task> action, TimeSpan delay) : IUpdating
     {
         private Action<Task> _action = action;

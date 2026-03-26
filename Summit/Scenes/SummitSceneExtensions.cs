@@ -132,10 +132,11 @@ public static class SummitSceneExtensions
 
         var newButton = new UIButton(_ =>
         {
+            Scheduler.Clear();
             Core.SceneManager.Current = SummitScene.Gameplay.ToScene();
             Scheduler.Delay(() =>
             {
-                MainGame.ResetState(); // deletes save + creates new state + OnLoad()
+                GameState.Reset();
             }, TransitionDuration);
         })
         {
@@ -531,6 +532,7 @@ public static class SummitSceneExtensions
         };
         var restartButton = new UIButton(_ =>
         {
+            Scheduler.Clear();
             Core.SceneManager.Current = SummitScene.Gameplay.ToScene();
 
             Scheduler.Delay(() =>
