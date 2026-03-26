@@ -59,6 +59,7 @@ public static class SummitSceneExtensions
     {
         var screenWidth = SummitKit.Core.GraphicsDevice.PresentationParameters.BackBufferWidth;
         var screenHeight = SummitKit.Core.GraphicsDevice.PresentationParameters.BackBufferHeight;
+        bool hasSave = ((ISerializable<GameState>)MainGame.State).HasSave();
 
         UIContainer container = new()
         {
@@ -69,7 +70,7 @@ public static class SummitSceneExtensions
             Padding = 15
         };
         container.Shadow.Enabled = false;
-        container.SetDimensions(400, 275);
+        container.SetDimensions(400, hasSave ? 370 : 275);
         container.Position = new(screenWidth / 2 - container.Width / 2, screenHeight / 2 - container.Height / 2);
         container.Add();
 
@@ -85,7 +86,6 @@ public static class SummitSceneExtensions
         ((IUIElement)container).AddChild(titleText);
         titleText.Add();
 
-        bool hasSave = ((ISerializable<GameState>)MainGame.State).HasSave();
 
         // Resume button (conditional)
         if (hasSave)
@@ -154,7 +154,6 @@ public static class SummitSceneExtensions
         newText.Add();
         newButton.Add();
         ((IUIElement)container).AddChild(newButton);
-        ((IUIElement)container).RecalculateLayout();
 
         var quitText = new UIText(SummitKit.Core.ConsoleFont, "Quit")
         {
@@ -183,6 +182,7 @@ public static class SummitSceneExtensions
         quitText.Add();
         quitButton.Add();
 
+        ((IUIElement)container).RecalculateLayout();
         return container;
     }
 
@@ -355,7 +355,6 @@ public static class SummitSceneExtensions
         var button = new UIButton(_ =>
         {
             MainGame.State.PlaySelected();
-            MainGame.State.Deal();
         });
         button.SetDimensions(200, 100);
         text.SetDimensions(button.PreferredLayout.Size.ToVector2() - new Vector2(button.Padding));

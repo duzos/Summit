@@ -286,11 +286,14 @@ public class GameState : ISerializable<GameState>, IUpdating
             MusicTracker musicTracker = Core.Audio.Music;
             musicTracker.FadeInto(musicTracker.RandomSong!, TimeSpan.FromSeconds(2.5), TimeSpan.FromSeconds(2.5));
         }
-        if (CheckGameEnd() || !IsGameplayScene()) return;
+        if (!IsGameplayScene()) return;
 
         if (RoundsPlayed == 0) NextRound();
+        else if (MainHand.Cards.Count == 0) Deal();
+        else MainHand.SpawnCards();
 
-        Deal();
+        //CheckGameEnd();
+
         PlayedHand.SpawnCards();
 
         Scheduler.Delay(() =>
