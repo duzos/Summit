@@ -536,7 +536,6 @@ public static class SummitSceneExtensions
             Scheduler.Delay(() =>
             {
                 State.GameState.Reset();
-                MainGame.State.OnLoad();
             }, TransitionDuration);
         })
         {
