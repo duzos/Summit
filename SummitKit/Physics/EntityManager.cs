@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using SummitKit.Graphics;
 using SummitKit.Input;
+using SummitKit.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -70,16 +71,19 @@ public class EntityManager : IUpdating, IDraw
 
     public void CheckClicks(MouseInfo input)
     {
+        var scene = Core.SceneManager.Current;
+        var uiRoots = scene?.Children.OfType<IUIElement>();
+
         if (input.WasButtonJustPressed(MouseButton.Left))
         {
-            var entity = GetEntityAtPosition(input.Position.ToVector2(), e => e.Clickable);
+            var entity = GetEntityAtPosition(input.Position.ToVector2(), e => e.Clickable, uiRoots);
             entity?.OnClick(input.CurrentState);
             _lastClick = entity;
         }
 
         if (input.WasButtonJustReleased(MouseButton.Left))
         {
-            var entity = DraggedEntity is not null ? DraggedEntity : (GetEntityAtPosition(input.Position.ToVector2(), e => e.Clickable));
+            var entity = DraggedEntity is not null ? DraggedEntity : (GetEntityAtPosition(input.Position.ToVector2(), e => e.Clickable, uiRoots));
             bool dragged = DraggedEntity is not null;
             _drag.Release();
             entity?.OnRelease(input.CurrentState, dragged);
@@ -92,7 +96,7 @@ public class EntityManager : IUpdating, IDraw
         }
 
         var preHover = HoveredEntity;
-        HoveredEntity = GetEntityAtPosition(input.Position.ToVector2(), e => e.Clickable);
+        HoveredEntity = GetEntityAtPosition(input.Position.ToVector2(), e => e.Clickable, uiRoots);
         if (preHover != HoveredEntity)
         {
             preHover?.OnHoverStop(input.CurrentState);
@@ -138,8 +142,14 @@ public class EntityManager : IUpdating, IDraw
         }
     }
 
-    public Entity GetEntityAtPosition(Vector2 position, Predicate<Entity>? filter = null)
+    public Entity GetEntityAtPosition(Vector2 position, Predicate<Entity>? filter = null, IEnumerable<IUIElement>? uiRoots = null)
     {
+        if (uiRoots != null)
+        {
+            var uiHit = GetUIEntityAtPosition(position, uiRoots);
+            if (uiHit != null && (filter == null || filter(uiHit))) return uiHit;
+        }
+
         Entity? best = null;
         float bestDepth = float.NegativeInfinity;
         var list = filter is null ? _entities : _entities.Where(filter.Invoke);
@@ -157,6 +167,27 @@ public class EntityManager : IUpdating, IDraw
         }
 
         return best;
+    }
+
+    private static Entity? GetUIEntityAtPosition(Vector2 position, IEnumerable<IUIElement> roots)
+    {
+        IUIElement? best = null;
+        float bestDepth = float.NegativeInfinity;
+
+        foreach (var root in roots)
+        {
+            var hit = UITree.FindTopmost(root, position.ToPoint());
+            if (hit is Entity hitEntity)
+            {
+                if (best == null || hitEntity.LayerDepth > bestDepth)
+                {
+                    best = hit;
+                    bestDepth = hitEntity.LayerDepth;
+                }
+            }
+        }
+
+        return best as Entity;
     }
     public IEnumerable<Entity> GetEntitiesInArea(Rectangle area) => _entities.Where(e => e.AABB.Intersects(area));
 

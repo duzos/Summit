@@ -35,7 +35,7 @@ public class Deck(IEnumerable<CardData> cards)
 
     public void Shuffle(Random? rng = null)
     {
-        rng ??= new Random();
+        rng ??= MainGame.State.Random;
         var cardList = Cards.ToList();
         int n = cardList.Count;
         while (n > 1)

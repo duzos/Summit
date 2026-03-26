@@ -38,7 +38,16 @@ public class GameState : ISerializable<GameState>, IUpdating
     public float? PlayedScore { get; set; }
 
     [JsonIgnore]
-    public Random Random { get; private set; } = new();
+    public Random Random { get; private set; } = null!;
+    [JsonIgnore]
+    private int _seed;
+    public int Seed { get => _seed; 
+        set {
+            _seed = value;
+            Random = new Random(_seed); 
+        } 
+    }
+
     public int TargetScore { get; set; } = 0;
     public float ScoreLimits { get; set; } = 0;
     public int RemainingHands { get; set; } = 0;
@@ -72,7 +81,8 @@ public class GameState : ISerializable<GameState>, IUpdating
 
     public GameState()
     {
-        MainDeck.Shuffle();
+        Seed = Environment.TickCount;
+
         OnLoad();
     }
 
@@ -251,6 +261,8 @@ public class GameState : ISerializable<GameState>, IUpdating
 
     public void OnLoad()
     {
+        Random ??= new Random(Seed);
+
         // kill all old card entities
 
         PlayedHand.Draggable = false;
