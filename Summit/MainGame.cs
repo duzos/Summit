@@ -49,7 +49,6 @@ namespace Summit
                 State.PlayedHand.Clear();
                 ((ISerializable<GameState>)State).Delete();
                 State = new();
-                State.OnLoad();
             }
             catch (Exception e)
             {
