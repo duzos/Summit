@@ -2,7 +2,9 @@
 using Microsoft.Xna.Framework.Graphics;
 using Summit.Card;
 using Summit.Maths;
+using Summit.State;
 using SummitKit;
+using SummitKit.IO;
 using SummitKit.Physics;
 using SummitKit.UI;
 using SummitKit.UI.Scene;
@@ -83,49 +85,85 @@ public static class SummitSceneExtensions
         ((IUIElement)container).AddChild(titleText);
         titleText.Add();
 
-        // Play button
-        var playText = new UIText(SummitKit.Core.ConsoleFont, "Play")
+        bool hasSave = ((ISerializable<GameState>)MainGame.State).HasSave();
+
+        // Resume button (conditional)
+        if (hasSave)
+        {
+            var resumeText = new UIText(SummitKit.Core.ConsoleFont, "Resume Game")
+            {
+                VerticalAlign = UIAlign.Center,
+                HorizontalAlign = UIAlign.Center,
+                TextHorizontalAlign = UIAlign.Center
+            };
+
+            var resumeButton = new UIButton(_ =>
+            {
+                Core.SceneManager.Current = SummitScene.Gameplay.ToScene();
+                Scheduler.Delay(() =>
+                {
+                    MainGame.State.OnLoad();
+                }, TransitionDuration);
+            })
+            {
+                Radius = 12,
+                Spacing = 15,
+                VerticalAlign = UIAlign.Start,
+                HorizontalAlign = UIAlign.Center,
+            };
+
+            resumeButton.SetDimensions(200, 60);
+            resumeText.SetDimensions(resumeButton.PreferredLayout.Size.ToVector2() - new Vector2(resumeButton.Padding));
+            resumeButton.BaseColour = Color.CornflowerBlue;
+            resumeButton.HoverColour = Color.RoyalBlue;
+
+            ((IUIElement)resumeButton).AddChild(resumeText);
+            resumeText.Add();
+            resumeButton.Add();
+            ((IUIElement)container).AddChild(resumeButton);
+        }
+
+        var newText = new UIText(SummitKit.Core.ConsoleFont, "New Game")
         {
             VerticalAlign = UIAlign.Center,
             HorizontalAlign = UIAlign.Center,
             TextHorizontalAlign = UIAlign.Center
         };
 
-        var playButton = new UIButton(_ =>
+        var newButton = new UIButton(_ =>
         {
-            // Transition to gameplay
             Core.SceneManager.Current = SummitScene.Gameplay.ToScene();
-
-            // Start the game after transition
             Scheduler.Delay(() =>
             {
-                MainGame.State.OnLoad();
+                MainGame.ResetState(); // deletes save + creates new state + OnLoad()
             }, TransitionDuration);
         })
         {
             Radius = 12,
+            Spacing = 15,
             VerticalAlign = UIAlign.Center,
             HorizontalAlign = UIAlign.Center,
-            Spacing = 15
         };
-        playButton.SetDimensions(200, 60);
-        playText.SetDimensions(playButton.PreferredLayout.Size.ToVector2() - new Vector2(playButton.Padding));
-        playButton.Shadow.Enabled = true;
-        playButton.BaseColour = Color.Green;
-        playButton.HoverColour = Color.DarkGreen;
-        ((IUIElement)playButton).AddChild(playText);
-        ((IUIElement)container).AddChild(playButton);
-        playText.Add();
-        playButton.Add();
 
-        playText = new UIText(SummitKit.Core.ConsoleFont, "Quit")
+        newButton.SetDimensions(200, 60);
+        newText.SetDimensions(newButton.PreferredLayout.Size.ToVector2() - new Vector2(newButton.Padding));
+        newButton.BaseColour = Color.Green;
+        newButton.HoverColour = Color.DarkGreen;
+
+        ((IUIElement)newButton).AddChild(newText);
+        newText.Add();
+        newButton.Add();
+        ((IUIElement)container).AddChild(newButton);
+        ((IUIElement)container).RecalculateLayout();
+
+        var quitText = new UIText(SummitKit.Core.ConsoleFont, "Quit")
         {
             VerticalAlign = UIAlign.Center,
             HorizontalAlign = UIAlign.Center,
             TextHorizontalAlign = UIAlign.Center
         };
 
-        playButton = new UIButton(_ =>
+        var quitButton = new UIButton(_ =>
         {
             Core.Instance.Exit();
         })
@@ -135,17 +173,15 @@ public static class SummitSceneExtensions
             HorizontalAlign = UIAlign.Center,
             Spacing = 15
         };
-        playButton.SetDimensions(200, 60);
-        playText.SetDimensions(playButton.PreferredLayout.Size.ToVector2() - new Vector2(playButton.Padding));
-        playButton.Shadow.Enabled = true;
-        playButton.BaseColour = Color.Red;
-        playButton.HoverColour = Color.DarkRed;
-        ((IUIElement)playButton).AddChild(playText);
-        ((IUIElement)container).AddChild(playButton);
-        playText.Add();
-        playButton.Add();
-
-        ((IUIElement)container).RecalculateLayout();
+        quitButton.SetDimensions(200, 60);
+        quitText.SetDimensions(quitButton.PreferredLayout.Size.ToVector2() - new Vector2(quitButton.Padding));
+        quitButton.Shadow.Enabled = true;
+        quitButton.BaseColour = Color.Red;
+        quitButton.HoverColour = Color.DarkRed;
+        ((IUIElement)quitButton).AddChild(quitText);
+        ((IUIElement)container).AddChild(quitButton);
+        quitText.Add();
+        quitButton.Add();
 
         return container;
     }

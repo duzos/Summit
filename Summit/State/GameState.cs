@@ -281,9 +281,11 @@ public class GameState : ISerializable<GameState>, IUpdating
         MainHand.Position = new Vector2(Core.GraphicsDevice.Viewport.Width / 2, Core.GraphicsDevice.Viewport.Height - 200);
 
         // pick new song
-        MusicTracker musicTracker = Core.Audio.Music;
-        musicTracker.FadeInto(musicTracker.RandomSong!, TimeSpan.FromSeconds(2.5), TimeSpan.FromSeconds(2.5));
-
+        if (MusicTracker.CurrentMusic is null)
+        {
+            MusicTracker musicTracker = Core.Audio.Music;
+            musicTracker.FadeInto(musicTracker.RandomSong!, TimeSpan.FromSeconds(2.5), TimeSpan.FromSeconds(2.5));
+        }
         if (CheckGameEnd() || !IsGameplayScene()) return;
 
         if (RoundsPlayed == 0) NextRound();

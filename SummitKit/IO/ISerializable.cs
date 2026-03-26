@@ -62,4 +62,16 @@ public interface ISerializable<T> where T : class, ISerializable<T>
     }
 
     void OnLoad();
+
+    bool HasSave()
+    {
+        try
+        {
+            return File.Exists(FilePath);
+        }
+        catch
+        {
+            return false;
+        }
+    }
 }
