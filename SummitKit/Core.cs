@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using SummitKit.Audio;
 using SummitKit.Command;
+using SummitKit.Graphics;
 using SummitKit.Input;
 using SummitKit.Physics;
 using SummitKit.UI;
@@ -62,6 +63,9 @@ public class Core : Game
     public static bool ExitOnEscape { get; set; }
     public static SpriteFont ConsoleFont { get; set; }
 
+    public static Camera Camera { get; } = new Camera();
+    public static SpriteSortMode WorldSortMode { get; set; } = SpriteSortMode.Deferred;
+    public static Texture2D Pixel { get; private set; }
     /// <summary>
     /// Creates a new Core instance.
     /// </summary>
@@ -135,12 +139,15 @@ public class Core : Game
 
         // Create the sprite batch instance.
         SpriteBatch = new SpriteBatch(GraphicsDevice);
+        Pixel = new Texture2D(GraphicsDevice, 1, 1);
+        Pixel.SetData([Color.White]);
 
         Input = new InputManager();
 
         Console.Commands.Register(new HelpCommand(Console.Commands));
         Console.Commands.Register(new DebugUICommand());
         Console.Commands.Register(new CommandScene());
+        Console.Commands.Register(new CameraCommand());
         Console.Commands.RegisterNamespace("SummitKit.Audio", assembly: typeof(FadeSongCommand).Assembly);
         base.Initialize();
     }
@@ -178,6 +185,7 @@ public class Core : Game
         }
 
         Entities.Update(gameTime);
+        Camera.Update(gameTime);
         base.Update(gameTime);
 
         Audio.Update(gameTime);
@@ -186,8 +194,18 @@ public class Core : Game
     protected override void Draw(GameTime gameTime)
     {
         base.Draw(gameTime);
-    
+
+        SpriteBatch.Begin(WorldSortMode, samplerState: SamplerState.PointClamp, transformMatrix: Camera.GetTransform(GraphicsDevice.Viewport));
+        DrawWorld(SpriteBatch);
         Entities.Draw(SpriteBatch);
+        SpriteBatch.End();
+
+        SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        DrawScreen(SpriteBatch);
         Console.Draw(SpriteBatch);
+        SpriteBatch.End();
     }
+
+    protected virtual void DrawWorld(SpriteBatch batch) { }
+    protected virtual void DrawScreen(SpriteBatch batch) { }
 }

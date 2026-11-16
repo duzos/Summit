@@ -60,6 +60,9 @@ namespace Summit
         {
             base.Initialize();
 
+            WorldSortMode = SpriteSortMode.FrontToBack;
+            Camera.Position = GraphicsDevice.Viewport.Bounds.Center.ToVector2();
+
             Console.Commands.RegisterNamespace("Summit.Command", assembly: typeof(SetScoreCommand).Assembly);
 
             try
@@ -107,6 +110,7 @@ namespace Summit
         public override void ToggleFullScreen()
         {
             base.ToggleFullScreen();
+            Camera.Position = GraphicsDevice.Viewport.Bounds.Center.ToVector2();
 
             // todo reload all entities
             State.OnLoad();
@@ -145,11 +149,14 @@ namespace Summit
                 GraphicsDevice.Viewport.Height
             ));
             SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Opaque, null, null, null, _background);
-            SpriteBatch.Draw(new Texture2D(GraphicsDevice, 1, 1), GraphicsDevice.Viewport.Bounds, Color.White);
+            SpriteBatch.Draw(Pixel, GraphicsDevice.Viewport.Bounds, Color.White);
             SpriteBatch.End();
 
-            SpriteBatch.Begin(sortMode: SpriteSortMode.FrontToBack, samplerState: SamplerState.PointClamp);
+            base.Draw(gameTime);
+        }
 
+        protected override void DrawWorld(SpriteBatch batch)
+        {
             SpriteBatch.DrawString(
                 _font,
                 Entities.DraggedEntity is not CardEntity e ? "" : State.MainHand.Cards.ToList().IndexOf(e.Data).ToString(),
@@ -201,12 +208,8 @@ namespace Summit
                 SpriteEffects.None,
                 0.11f
             );
-            base.Draw(gameTime);
-
             State.MainHand.Draw(SpriteBatch);
             State.PlayedHand.Draw(SpriteBatch);
-
-            SpriteBatch.End();
         }
     }
 }

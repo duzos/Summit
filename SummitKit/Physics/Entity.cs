@@ -78,7 +78,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         get
         {
             UpdateAABBIfNeeded();
-            return new Vector2(AABB.X + AABB.Width / 2f, AABB.Y + AABB.Height / 2f);
+            return Position + AABB.Size.ToVector2() / 2f;
         }
     }
 
@@ -125,7 +125,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
 
         }
     }
-    public bool IsHovered => AABB.Contains(Core.Input.Mouse.Position);
+    public bool IsHovered => AABB.Contains(Core.Camera.MouseWorld);
     public virtual Vector2 Scale {
         get => Sprite?.Scale ?? Vector2.Zero;
         set
@@ -289,12 +289,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
     {
         Sprite?.Draw(batch, (Vector2)(Position + (AABB.Size.ToVector2() / 2)));
 
-        if (IUIElement.Debug)
-        {
-            var _pixel = new Texture2D(Core.GraphicsDevice, 1, 1);
-            _pixel.SetData([Color.White]);
-            batch.Draw(_pixel, AABB, Color.Red * 0.5F);
-        }
+        if (IUIElement.Debug) batch.Draw(Core.Pixel, AABB, Color.Red * 0.5F);
     }
 
     public virtual void OnClick(MouseState state)
@@ -322,7 +317,7 @@ public class Entity : IDraw, IUpdating, IClickable, IDraggable, IPositioned
         if (Draggable && DragFollowsCursor && (DragReplacesExisting || MoveTarget is null))
         {
             MoveTarget = null;
-            MoveTo(new VelocityTarget(() => Core.Input.Mouse.CurrentState.Position.ToVector2() - dragOffset, this, null, () => IsBeingDragged, 10, 50, Width), false);
+            MoveTo(new VelocityTarget(() => Core.Camera.MouseWorld - dragOffset, this, null, () => IsBeingDragged, 10, 50, Width), false);
         }
     }
 

@@ -30,7 +30,7 @@ public class DragHandler : IUpdating
     public Vector2 DragOffset { get; set; }
     public void Update(GameTime time)
     {
-        if (_possible != null && (Vector2.Distance(Possible.Position + PossibleOffset, Core.Input.Mouse.Position.ToVector2()) > Threshold))
+        if (_possible != null && (Vector2.Distance(Possible.Position + PossibleOffset, Core.Camera.MouseWorld) > Threshold))
         {
             Dragged = Possible;
             DragOffset = PossibleOffset;
