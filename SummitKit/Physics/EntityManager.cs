@@ -64,9 +64,23 @@ public class EntityManager : IUpdating, IDraw
         _drag.Update(gameTime);
     }
 
+    public Comparison<Entity>? DrawOrder { get; set; }
+
     public void Draw(SpriteBatch sprite)
     {
-        _entities.ForEach(e => e.Draw(sprite));
+        if (DrawOrder is null)
+        {
+            _entities.ForEach(e => e.Draw(sprite));
+            return;
+        }
+
+        var ordered = _entities.Select((entity, index) => (entity, index)).ToList();
+        ordered.Sort((a, b) =>
+        {
+            int result = DrawOrder(a.entity, b.entity);
+            return result != 0 ? result : a.index.CompareTo(b.index);
+        });
+        ordered.ForEach(e => e.entity.Draw(sprite));
     }
 
     public void CheckClicks(MouseInfo input)
