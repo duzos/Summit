@@ -82,7 +82,7 @@ public class MusicTracker(AudioManager audio) : IUpdating
         _songs.Add(song);
     }
 
-    public void FadeInto(Song song, TimeSpan fadeOut, TimeSpan fadeIn)
+    public void FadeInto(Song song, TimeSpan fadeOut, TimeSpan fadeIn, bool isLooped = false)
     {
         // Fade out current song, then when completed, fade into this song
         CurrentFade = new()
@@ -91,6 +91,7 @@ public class MusicTracker(AudioManager audio) : IUpdating
             StartVolume = MediaPlayer.Volume,
             TargetVolume = 0.0f,
             NextSong = song,
+            PlaySong = s => _audio.PlayMusic(s, isLooped),
             OnComplete = () =>
             {
                 CurrentFade.FadeDuration = fadeIn;
