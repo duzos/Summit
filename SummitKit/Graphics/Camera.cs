@@ -18,19 +18,36 @@ public class Camera : IPositioned, IUpdating
 
     public Vector2 Position { get; set; }
     public bool RoundToPixels { get; set; } = true;
-    public float Width => Core.GraphicsDevice.Viewport.Width / Zoom;
+    public float Width => Core.GraphicsDevice.Viewport.Width / EffectiveZoom;
 
-    public float Height => Core.GraphicsDevice.Viewport.Height / Zoom;
+    public float Height => Core.GraphicsDevice.Viewport.Height / EffectiveZoom;
     public float Zoom { get; set; } = 1f;
+    public float MinZoomStep { get; set; } = 0f;
     public Rectangle? Bounds { get; set; }
+
+    public float MinZoom
+    {
+        get
+        {
+            if (Bounds is not Rectangle b || b.Width <= 0 || b.Height <= 0) return 0f;
+
+            var viewport = Core.GraphicsDevice.Viewport;
+            float min = Math.Max((float)viewport.Width / b.Width, (float)viewport.Height / b.Height);
+            return MinZoomStep > 0f ? MathF.Ceiling(min / MinZoomStep) * MinZoomStep : min;
+        }
+    }
+
+    public float EffectiveZoom => Math.Max(Zoom, MinZoom);
+
     public Matrix GetTransform(Viewport viewport)
     {
+        float zoom = EffectiveZoom;
         Vector2 pos = RoundToPixels
-            ? new Vector2(MathF.Round(Position.X * Zoom) / Zoom, MathF.Round(Position.Y * Zoom) / Zoom)
+            ? new Vector2(MathF.Round(Position.X * zoom) / zoom, MathF.Round(Position.Y * zoom) / zoom)
             : Position;
 
         return Matrix.CreateTranslation(-pos.X, -pos.Y, 0f) *
-               Matrix.CreateScale(Zoom, Zoom, 1f) *
+               Matrix.CreateScale(zoom, zoom, 1f) *
                Matrix.CreateTranslation(MathF.Round(viewport.Width / 2f), MathF.Round(viewport.Height / 2f), 0f);
     }
     public Vector2 ScreenToWorld(Vector2 screen, Viewport viewport) =>
