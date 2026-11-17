@@ -1,0 +1,75 @@
+name: Beta build
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: beta
+  cancel-in-progress: true
+
+jobs:
+  beta:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Publish self-contained Windows build
+        run: dotnet publish ./Summit/Summit.csproj -c Release -f net9.0-windows -r win-x64 --self-contained true -o publish
+
+      - name: Zip build
+        shell: pwsh
+        run: Compress-Archive -Path publish\* -DestinationPath summit-beta.zip
+
+      - name: Update rolling beta release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          subject=$(git log -1 --format=%s)
+          gh release delete beta --cleanup-tag --yes || true
+          gh release create beta summit-beta.zip \
+            --prerelease \
+            --target "$GITHUB_SHA" \
+            --title "Beta #$RUN_NUMBER" \
+            --notes "Automated beta build of ${GITHUB_SHA::7}: $subject"
+
+      - name: Post to Discord
+        shell: bash
+        env:
+          WEBHOOK: ${{ secrets.DEV_BUILDS }}
+          REPO: ${{ github.repository }}
+          SERVER: ${{ github.server_url }}
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          subject=$(git log -1 --format=%s)
+          commit_url="$SERVER/$REPO/commit/$GITHUB_SHA"
+          download="$SERVER/$REPO/releases/download/beta/summit-beta.zip"
+          size=$(du -m summit-beta.zip | cut -f1)
+          payload=$(jq -nc \
+            --arg u "${REPO#*/} beta builds" \
+            --arg a "https://github.com/${REPO%%/*}.png" \
+            --arg repo "$REPO" \
+            --arg run "$RUN_NUMBER" \
+            --arg m "$subject" \
+            --arg url "$commit_url" \
+            --arg dl "$download" \
+            --arg size "$size" \
+            '{username: $u, avatar_url: $a, content: ("<:new1:1253371736510959636><:new2:1253371805734015006> New `\($repo)` beta build `#\($run)`:\n> :sparkles: [\($m)](<\($url)>)\n> :inbox_tray: [Download for Windows x64 (\($size) MB)](<\($dl)>)")}')
+          curl -sS --fail-with-body -X POST "$WEBHOOK" -H "Content-Type: application/json" -d "$payload"
