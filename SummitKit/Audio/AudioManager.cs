@@ -14,7 +14,8 @@ public class AudioManager : IDisposable, IUpdating
 {
     private readonly List<SoundEffectInstance> _sounds;
     private float _previousSoundVolume;
-    private float _previousMusicVolume;
+    private float _musicVolume = 1F;
+    private float _musicLevel = 1F;
 
     public bool IsMuted { get; private set; }
 
@@ -23,12 +24,28 @@ public class AudioManager : IDisposable, IUpdating
         get {
             if (IsMuted) return 0F;
 
-            return MediaPlayer.Volume;
+            return _musicVolume;
         }
 
         set {
-            MediaPlayer.Volume = Math.Clamp(value, 0F, 1F);
+            _musicVolume = Math.Clamp(value, 0F, 1F);
+            ApplyMusicVolume();
         }
+    }
+
+    public float MusicLevel
+    {
+        get => _musicLevel;
+        set
+        {
+            _musicLevel = Math.Clamp(value, 0F, 1F);
+            ApplyMusicVolume();
+        }
+    }
+
+    private void ApplyMusicVolume()
+    {
+        MediaPlayer.Volume = IsMuted ? 0F : _musicVolume * _musicLevel;
     }
 
     public float SoundVolume
@@ -123,19 +140,18 @@ public class AudioManager : IDisposable, IUpdating
     public void Mute()
     {
         if (IsMuted) return;
-        _previousMusicVolume = MusicVolume;
         _previousSoundVolume = SoundVolume;
-        MusicVolume = 0F;
         SoundVolume = 0F;
         IsMuted = true;
+        ApplyMusicVolume();
     }
 
     public void Unmute()
     {
         if (!IsMuted) return;
-        MusicVolume = _previousMusicVolume;
-        SoundVolume = _previousSoundVolume;
         IsMuted = false;
+        SoundVolume = _previousSoundVolume;
+        ApplyMusicVolume();
     }
 
     public void ToggleMute()

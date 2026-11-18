@@ -24,7 +24,7 @@ public sealed class SetVolumeCommand : ICommand
             context.Error("Invalid volume. Must be between 0.0 and 1.0.");
             return;
         }
-        MediaPlayer.Volume = volume;
+        Core.Audio.MusicVolume = volume;
         context.Success($"Volume set to {volume * 100}%.");
     }
 }
