@@ -49,6 +49,13 @@ public class AnimatedSprite : Sprite
         }
     }
 
+    public override Sprite Clone()
+    {
+        var clone = new AnimatedSprite(Animation) { PlayType = PlayType };
+        CopyTo(clone);
+        return clone;
+    }
+
     public void Reverse()
     {
         delta *= -1;
