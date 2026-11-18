@@ -15,7 +15,7 @@ public class MusicTracker(AudioManager audio) : IUpdating
     private readonly List<Song> _songs = [];
     private static readonly Random random = new();
 
-    public FadeTracker? CurrentFade { get; set; } = new();
+    public FadeTracker? CurrentFade { get; set; }
 
     public IEnumerable<Song> Songs => _songs.AsReadOnly();
     public IEnumerable<string> SongNames => _songs.Select(s => s.Name);
@@ -88,8 +88,9 @@ public class MusicTracker(AudioManager audio) : IUpdating
         CurrentFade = new()
         {
             FadeDuration = fadeOut,
-            StartVolume = MediaPlayer.Volume,
-            TargetVolume = 0.0f,
+            StartLevel = _audio.MusicLevel,
+            TargetLevel = 0.0f,
+            ReturnLevel = 1.0f,
             NextSong = song,
             PlaySong = s => _audio.PlayMusic(s, isLooped),
             OnComplete = () =>

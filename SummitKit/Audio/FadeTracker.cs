@@ -2,10 +2,6 @@
 using Microsoft.Xna.Framework.Media;
 using SummitKit.Physics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SummitKit.Audio;
 
@@ -13,9 +9,12 @@ public class FadeTracker : IUpdating
 {
     private TimeSpan _elapsed = TimeSpan.Zero;
     public TimeSpan FadeDuration { get; set; } = TimeSpan.FromSeconds(1);
-    public float StartVolume { get; set; } = 1.0f;
-    public float TargetVolume { get; set; } = 0.0f;
-    public float CurrentVolume => (float)(_elapsed.TotalMilliseconds / FadeDuration.TotalMilliseconds) * (TargetVolume - StartVolume) + StartVolume;
+    public float StartLevel { get; set; } = 1.0f;
+    public float TargetLevel { get; set; } = 0.0f;
+    public float ReturnLevel { get; set; } = 1.0f;
+    public float CurrentLevel => FadeDuration <= TimeSpan.Zero
+        ? TargetLevel
+        : (float)(_elapsed.TotalMilliseconds / FadeDuration.TotalMilliseconds) * (TargetLevel - StartLevel) + StartLevel;
     public bool IsComplete => NextSong is null && _elapsed >= FadeDuration;
 
     public Song? NextSong { get; set; } = null;
@@ -28,21 +27,21 @@ public class FadeTracker : IUpdating
 
         if (_elapsed >= FadeDuration)
         {
-            MediaPlayer.Volume = TargetVolume;
-            // now fade into next song if applicable
+            Core.Audio.MusicLevel = TargetLevel;
             if (NextSong is not null && PlaySong is not null)
             {
                 PlaySong.Invoke(NextSong);
                 NextSong = null;
                 _elapsed = TimeSpan.Zero;
-                (TargetVolume, StartVolume) = (StartVolume, TargetVolume);
+                StartLevel = TargetLevel;
+                TargetLevel = ReturnLevel;
             }
 
             OnComplete?.Invoke();
         }
         else
         {
-            MediaPlayer.Volume = CurrentVolume;
+            Core.Audio.MusicLevel = CurrentLevel;
         }
     }
 }
