@@ -124,6 +124,13 @@ public class Sprite : IUpdating
         other.Scale = Scale;
     }
 
+    public virtual Sprite Clone()
+    {
+        var clone = new Sprite(Region);
+        CopyTo(clone);
+        return clone;
+    }
+
     public virtual void Update(GameTime deltaTime)
     {
         
